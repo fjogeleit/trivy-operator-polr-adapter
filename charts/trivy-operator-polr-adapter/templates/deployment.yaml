@@ -5,9 +5,7 @@ metadata:
   labels:
     {{- include "trivy-operator-polr-adapter.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "trivy-operator-polr-adapter.selectorLabels" . | nindent 6 }}
@@ -35,6 +33,11 @@ spec:
           {{- end }}
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - --enable-vulnerability={{ .Values.adapters.vulnerabilityReports.enabled }}
+            - --enable-config-audit={{ .Values.adapters.configAuditReports.enabled }}
+            - --enable-kube-bench={{ .Values.adapters.cisKubeBenchReports.enabled }}
+            - --enable-compliance={{ .Values.adapters.complianceReports.enabled }}
           readinessProbe:
             exec:
               command:

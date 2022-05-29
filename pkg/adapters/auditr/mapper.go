@@ -71,7 +71,7 @@ func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1al
 			Result:     MapResult(check.Success),
 			Severity:   MapServerity(check.Severity),
 			Category:   check.Category,
-			Timestamp:  *report.Report.UpdateTimestamp.ProtoTime(),
+			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     source,
 		})
 	}
@@ -119,14 +119,9 @@ func CreateObjectReference(report *v1alpha1.ConfigAuditReport) *corev1.ObjectRef
 }
 
 func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyReport {
-	name := report.Name
-	if len(report.OwnerReferences) == 1 {
-		name = report.OwnerReferences[0].Name
-	}
-
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
-			Name:            GeneratePolicyReportName(name),
+			Name:            GeneratePolicyReportName(report),
 			Namespace:       report.Namespace,
 			Labels:          reportLabels,
 			OwnerReferences: report.OwnerReferences,
@@ -136,6 +131,11 @@ func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyRepo
 	}
 }
 
-func GeneratePolicyReportName(name string) string {
+func GeneratePolicyReportName(report *v1alpha1.ConfigAuditReport) string {
+	name := report.Name
+	if len(report.OwnerReferences) == 1 {
+		name = report.OwnerReferences[0].Name
+	}
+
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
 }
