@@ -7,6 +7,13 @@ Maps Trivy Operator CRDs into the unified PolicyReport and ClusterPolicyReport f
 1. [Trivy Operator](https://github.com/aquasecurity/trivy-operator) with the related CRDs is installed and running
 2. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1alpha2) are installed in your Cluster
 
+## Installation via Helm
+
+```bash
+helm repo add trivy-operator-polr-adapter https://fjogeleit.github.io/trivy-operator-polr-adapter
+helm install trivy-operator-polr-adapter trivy-operator-polr-adapter/trivy-operator-polr-adapter -n trivy-adapter --create-namespace
+```
+
 ## Integreted Adapters
 
 ### VulnerabilityReports
@@ -150,3 +157,17 @@ summary:
   skip: 0
   warn: 36
 ```
+
+## Policy Reporter UI Screenshots
+
+### VulnerabilityReports
+
+![Policy Reporter UI - PolicyReport VulnerabilityReports Screenshot](https://github.com/fjogeleit/trivy-operator-polr-adapter/blob/main/screens/vulnr.png?raw=true)
+
+### ConfigAuditReports
+
+![Policy Reporter UI - PolicyReport ConfigAuditReports Screenshot](https://github.com/fjogeleit/trivy-operator-polr-adapter/blob/main/screens/config-audit.png?raw=true)
+
+### CISKubeBenchReports
+
+![Policy Reporter UI - PolicyReport CISKubeBenchReports Screenshot](https://github.com/fjogeleit/trivy-operator-polr-adapter/blob/main/screens/kube-bench.png?raw=true)
