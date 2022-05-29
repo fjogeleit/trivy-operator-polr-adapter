@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  trivy-operator-polr-adapter:
+  - apiVersion: v2
+    appVersion: 0.0.1
+    created: "2022-05-29T11:01:27.767923154Z"
+    description: Helm Chart to install the trivy-operator PolicyReport adapter
+    digest: a3ad8ac4fc3c72aa998d1aae9d41d05bd556fbc0677b9bff61686d69a9d35a69
+    name: trivy-operator-polr-adapter
+    type: application
+    urls:
+    - https://github.com/fjogeleit/trivy-operator-polr-adapter/releases/download/trivy-operator-polr-adapter-0.0.1/trivy-operator-polr-adapter-0.0.1.tgz
+    version: 0.0.1
+generated: "2022-05-29T11:01:27.767928854Z"
