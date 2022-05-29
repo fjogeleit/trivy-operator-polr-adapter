@@ -1,0 +1,1 @@
+# Trivy Operator PolicyReport Adapter

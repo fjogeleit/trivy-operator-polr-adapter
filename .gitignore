@@ -1,0 +1,6 @@
+.deploy
+/config.yaml
+build
+values.yaml
+coverage.out
+heap*
