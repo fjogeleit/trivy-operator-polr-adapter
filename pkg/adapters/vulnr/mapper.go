@@ -82,7 +82,7 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			Result:     MapResult(vuln.Severity),
 			Severity:   MapServerity(vuln.Severity),
 			Category:   category,
-			Timestamp:  *report.Report.UpdateTimestamp.ProtoTime(),
+			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     source,
 		})
 	}
@@ -134,14 +134,9 @@ func CreateObjectReference(report *v1alpha1.VulnerabilityReport) *corev1.ObjectR
 }
 
 func CreatePolicyReport(report *v1alpha1.VulnerabilityReport) *v1alpha2.PolicyReport {
-	name := report.Name
-	if len(report.OwnerReferences) == 1 {
-		name = report.OwnerReferences[0].Name
-	}
-
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
-			Name:            GeneratePolicyReportName(name),
+			Name:            GeneratePolicyReportName(report),
 			Namespace:       report.Namespace,
 			Labels:          reportLabels,
 			OwnerReferences: report.OwnerReferences,
@@ -159,6 +154,11 @@ func CreateSummary(sum v1alpha1.VulnerabilitySummary) v1alpha2.PolicyReportSumma
 	}
 }
 
-func GeneratePolicyReportName(name string) string {
+func GeneratePolicyReportName(report *v1alpha1.VulnerabilityReport) string {
+	name := report.Name
+	if len(report.OwnerReferences) == 1 {
+		name = report.OwnerReferences[0].Name
+	}
+
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
 }

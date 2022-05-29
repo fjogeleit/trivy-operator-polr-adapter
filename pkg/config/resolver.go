@@ -3,10 +3,10 @@ package config
 import (
 	"time"
 
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/auditr"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/compliance"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/kubebench"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/vulnr"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/kubebench"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
 
 	"github.com/aquasecurity/trivy-operator/pkg/generated/clientset/versioned"
 	"github.com/kyverno/kyverno/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"

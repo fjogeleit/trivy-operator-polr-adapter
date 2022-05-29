@@ -69,7 +69,7 @@ func Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport
 					Scored:    result.Scored,
 					Result:    MapResult(result.Status),
 					Category:  section.Text,
-					Timestamp: *report.Report.UpdateTimestamp.ProtoTime(),
+					Timestamp: *report.CreationTimestamp.ProtoTime(),
 					Source:    source,
 				})
 			}

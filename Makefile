@@ -15,6 +15,10 @@ clean:
 prepare:
 	mkdir -p $(BUILD)
 
+.PHONY: build
+build: prepare
+	CGO_ENABLED=0 $(GO) build -v -ldflags="$(GOFLAGS)" -o $(BUILD)/trivy-operator-polr-adapter .
+
 .PHONY: docker-build
 docker-build:
 	@docker buildx build --progress plane --platform $(PLATFORMS) --tag $(REPO):$(IMAGE_TAG) . --build-arg LD_FLAGS=$(LD_FLAGS)

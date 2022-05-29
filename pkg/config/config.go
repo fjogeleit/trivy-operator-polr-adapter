@@ -26,5 +26,5 @@ type Config struct {
 	VulnerabilityReports VulnerabilityReports `mapstructure:"vulnerabilityReports"`
 	ConfigAuditReports   ConfigAuditReports   `mapstructure:"configAuditReports"`
 	CISKubeBenchReports  CISKubeBenchReports  `mapstructure:"cisKubeBenchReports"`
-	ComplianceReports    ComplianceReports    `mapstructure:"complianceDetailReport"`
+	ComplianceReports    ComplianceReports    `mapstructure:"complianceReports"`
 }
