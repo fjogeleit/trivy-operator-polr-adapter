@@ -2,7 +2,7 @@
 
 Maps Trivy Operator CRDs into the unified PolicyReport and ClusterPolicyReport from the Kubernetes Policy Working Group. This makes it possible to use tooling like [Policy Reporter](https://github.com/kyverno/policy-reporter) for the different kinds of Trivy Reports.
 
-## Pre Requiements
+## Pre Requirements
 
 1. [Trivy Operator](https://github.com/aquasecurity/trivy-operator) with the related CRDs is installed and running
 2. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1alpha2) are installed in your Cluster
