@@ -1,6 +1,7 @@
 package vulnr
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
@@ -38,6 +39,10 @@ var (
 )
 
 func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+	if len(report.Report.Vulnerabilities) == 0 {
+		return nil, false
+	}
+
 	var updated bool
 
 	if polr == nil {
@@ -56,12 +61,15 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			score = *vuln.Score
 		}
 
+		result := MapResult(vuln.Severity)
+
 		props := map[string]string{
 			"artifact.repository": report.Report.Artifact.Repository,
 			"artifact.tag":        report.Report.Artifact.Tag,
 			"registry.server":     report.Report.Registry.Server,
 			"score":               fmt.Sprint(score),
 			"resource":            vuln.Resource,
+			"resultID":            generateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result)),
 		}
 
 		if vuln.FixedVersion != "" {
@@ -79,7 +87,7 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			Message:    vuln.Title,
 			Properties: props,
 			Resources:  []*corev1.ObjectReference{res},
-			Result:     MapResult(vuln.Severity),
+			Result:     result,
 			Severity:   MapServerity(vuln.Severity),
 			Category:   category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
@@ -161,4 +169,13 @@ func GeneratePolicyReportName(report *v1alpha1.VulnerabilityReport) string {
 	}
 
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
+}
+
+func generateID(uid, name, policy, rule, result string) string {
+	id := fmt.Sprintf("%s_%s_%s_%s_%s", uid, name, policy, rule, result)
+
+	h := sha1.New()
+	h.Write([]byte(id))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

@@ -37,6 +37,10 @@ var (
 )
 
 func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+	if len(report.Report.Checks) == 0 {
+		return nil, false
+	}
+
 	var updated bool
 
 	if polr == nil {
@@ -49,7 +53,7 @@ func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1al
 
 	res := CreateObjectReference(report)
 
-	for _, check := range append(report.Report.Checks, report.Report.PodChecks...) {
+	for _, check := range report.Report.Checks {
 		props := map[string]string{}
 
 		for i, m := range check.Messages {
