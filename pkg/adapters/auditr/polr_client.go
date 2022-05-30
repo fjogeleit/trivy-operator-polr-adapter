@@ -25,7 +25,9 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 		}
 
 		polr, updated := Map(report, polr)
-		if updated {
+		if polr == nil {
+			return nil
+		} else if updated {
 			_, err = p.k8sClient.PolicyReports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
 		} else {
 			_, err = p.k8sClient.PolicyReports(report.Namespace).Create(ctx, polr, v1.CreateOptions{})
