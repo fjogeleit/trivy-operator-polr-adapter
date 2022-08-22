@@ -16,10 +16,10 @@ helm install trivy-operator-polr-adapter trivy-operator-polr-adapter/trivy-opera
 
 ## Usage
 
-Local usage ConfigAuditReport and VulnerabilityReports mapping enabled.
+Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 
 ```bash
-./trivy-operator-polr-adapter run --kubeconfig ~/user/.kube/config --enable-config-audit --enable-vulnerability
+./trivy-operator-polr-adapter run --kubeconfig ~/.kube/config --enable-config-audit --enable-vulnerability
 ```
 
 ## Configuration
