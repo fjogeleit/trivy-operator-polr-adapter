@@ -14,6 +14,27 @@ helm repo add trivy-operator-polr-adapter https://fjogeleit.github.io/trivy-oper
 helm install trivy-operator-polr-adapter trivy-operator-polr-adapter/trivy-operator-polr-adapter -n trivy-adapter --create-namespace
 ```
 
+## Usage
+
+Local usage ConfigAuditReport and VulnerabilityReports mapping enabled.
+
+```bash
+./trivy-operator-polr-adapter run --kubeconfig ~/user/.kube/config --enable-config-audit --enable-vulnerability
+```
+
+## Configuration
+
+
+| Argument                | Helm Value                             | Description                                                           | Default Helm Value |
+|-------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
+|--kubeconfig             |                                        | Path to the used kubeconfig, mainly for local development             |                    |
+|--enable-vulnerability   |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
+|--enable-config-audit    |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |
+|--enable-rbac-assessment |`adapters.rbacAssessmentReports.enabled`| Enables the transformation of RbacAssessmentReport into PolicyReports and<br>ClusterRbacAssessmentReport into ClusterPolicyReports  | `false`             |
+|--enable-exposed-secrets |`adapters.exposedSecretReports.enabled` | Enables the transformation of ExposedSecretReport into PolicyReports   | `false`             |
+|--enable-compliance |`adapters.complianceReports.enabled` | Enables the transformation of ClusterComplianceDetailReport into ClusterPolicyReports<br>(Not implemented in Trivy Operator yet) | `false`             |
+|--enable-kube-bench |`adapters.cisKubeBenchReports.enabled` | Enables the transformation of CISKubeBenchReports into ClusterPolicyReports<br>(Not available in newer version of Trivy Operator) | `false`             |
+
 ## Integreted Adapters
 
 ### VulnerabilityReports
