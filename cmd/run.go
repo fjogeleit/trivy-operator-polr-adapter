@@ -5,7 +5,6 @@ import (
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 	"github.com/spf13/cobra"
-	"golang.org/x/sync/errgroup"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -32,53 +31,94 @@ func newRunCMD() *cobra.Command {
 
 			resolver := config.NewResolver(c, k8sConfig)
 
-			g := &errgroup.Group{}
+			if c.ConfigAuditReports.Enabled {
+				auditrClient, err := resolver.ConfigAuditReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = auditrClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
 
 			if c.VulnerabilityReports.Enabled {
 				vulnrClient, err := resolver.VulnerabilityReportClient()
 				if err != nil {
 					return err
 				}
-				g.Go(func() error {
-					vulnrClient.StartWatching(cmd.Context())
-					return nil
-				})
-			}
 
-			if c.ConfigAuditReports.Enabled {
-				auditrClient, err := resolver.ConfigAuditReportClient()
+				err = vulnrClient.StartWatching(cmd.Context())
 				if err != nil {
 					return err
 				}
-				g.Go(func() error {
-					auditrClient.StartWatching(cmd.Context())
-					return nil
-				})
-			}
-
-			if c.CISKubeBenchReports.Enabled {
-				kubebenchClient, err := resolver.CISKubeBenchReportClient()
-				if err != nil {
-					return err
-				}
-				g.Go(func() error {
-					kubebenchClient.StartWatching(cmd.Context())
-					return nil
-				})
 			}
 
 			if c.ComplianceReports.Enabled {
-				complianceClient, err := resolver.CompliaceReportClient()
+				complianceClient, err := resolver.ComplianceReportClient()
 				if err != nil {
 					return err
 				}
-				g.Go(func() error {
-					complianceClient.StartWatching(cmd.Context())
-					return nil
-				})
+
+				err = complianceClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
 			}
 
-			return g.Wait()
+			if c.RbacAssessmentReports.Enabled {
+				rbacClient, err := resolver.RbacAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = rbacClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+
+				clusterrbacClient, err := resolver.ClusterRbacAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = clusterrbacClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
+			if c.ExposedSecretReports.Enabled {
+				secretClient, err := resolver.ExposedSecretReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = secretClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
+			if c.CISKubeBenchReports.Enabled {
+				kubeBenchClient, err := resolver.CISKubeBenchReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = kubeBenchClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
+			mgr, err := resolver.Manager()
+			if err != nil {
+				return err
+			}
+
+			return mgr.Start(cmd.Context())
 		},
 	}
 
@@ -90,6 +130,8 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-config-audit", false, "Enable the transformation of ConfigAuditReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-kube-bench", false, "Enable the transformation of CISKubeBenchReports into ClusterPolicyReports")
 	cmd.PersistentFlags().Bool("enable-compliance", false, "Enable the transformation of ClusterComplianceDetailReport into ClusterPolicyReports")
+	cmd.PersistentFlags().Bool("enable-rbac-assessment", false, "Enable the transformation of RbacAssessmentReport into PolicyReports")
+	cmd.PersistentFlags().Bool("enable-exposed-secrets", false, "Enable the transformation of ExposedSecretReport into PolicyReports")
 
 	flag.Parse()
 

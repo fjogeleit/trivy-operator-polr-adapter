@@ -1,7 +1,7 @@
 List created PolicyReports:
 
-kubectl get polr -A -l managed-by=trivy-operator-polr-adapter
+kubectl get polr -A -l app.kubernetes.io/created-by=trivy-operator-polr-adapter
 
 List created ClusterPolicyReports:
 
-kubectl get cpolr -A -l managed-by=trivy-operator-polr-adapter
+kubectl get cpolr -A -l app.kubernetes.io/created-by=trivy-operator-polr-adapter

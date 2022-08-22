@@ -1,6 +1,7 @@
-package auditr
+package rbac
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
@@ -20,23 +21,24 @@ const (
 )
 
 const (
-	resultSource = "Trivy ConfigAudit"
-	reportPrefix = "trivy-audit-polr"
+	trivySource  = "Trivy RbacAssessment"
+	reportPrefix = "trivy-rbac-polr"
+	category     = "RbacAssessment"
 
 	containerLabel = "trivy-operator.container.name"
 	kindLabel      = "trivy-operator.resource.kind"
-	nameLabel      = "trivy-operator.resource.name"
+	nameAnnotation = "trivy-operator.resource.name"
 	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
 var (
 	reportLabels = map[string]string{
 		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ConfigAuditReport",
+		"trivy-operator.source":        "RbacAssessmentReport",
 	}
 )
 
-func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
 	if len(report.Report.Checks) == 0 {
 		return nil, false
 	}
@@ -46,7 +48,7 @@ func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1al
 	if polr == nil {
 		polr = CreatePolicyReport(report)
 	} else {
-		polr.Summary = v1alpha2.PolicyReportSummary{}
+		polr.Summary = CreateSummary(report)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
@@ -54,45 +56,33 @@ func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1al
 	res := CreateObjectReference(report)
 
 	for _, check := range report.Report.Checks {
-		props := map[string]string{}
 
-		messages := []string{}
-		for _, m := range check.Messages {
-			if m == "" {
+		result := MapResult(check.Success)
+
+		props := map[string]string{
+			"resultID": generateID(string(res.UID), res.Name, check.Title, check.ID, string(result)),
+		}
+
+		var index int
+		for _, msg := range check.Messages {
+			if msg == "" {
 				continue
 			}
-
-			messages = append(messages, m)
-		}
-
-		if check.Success {
-			polr.Summary.Pass++
-		} else {
-			polr.Summary.Fail++
-		}
-
-		message := check.Description
-		if len(messages) == 1 {
-			message = messages[0]
-
-			props["description"] = check.Description
-		} else {
-			for index, msg := range messages {
-				props[fmt.Sprintf("%d. message", index)] = msg
-			}
+			index++
+			props[fmt.Sprintf("%d. message", index)] = msg
 		}
 
 		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 			Policy:     check.Title,
 			Rule:       check.ID,
-			Message:    message,
+			Message:    check.Description,
 			Properties: props,
 			Resources:  []corev1.ObjectReference{res},
-			Result:     MapResult(check.Success),
+			Result:     result,
 			Severity:   MapServerity(check.Severity),
 			Category:   check.Category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     resultSource,
+			Source:     trivySource,
 		})
 	}
 
@@ -114,16 +104,14 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 		return v1alpha2.SeverityLow
 	} else if severity == v1alpha1.SeverityMedium {
 		return v1alpha2.SeverityMedium
-	} else if severity == v1alpha1.SeverityHigh {
-		return v1alpha2.SeverityHigh
 	}
 
 	return v1alpha2.SeverityHigh
 }
 
-func CreateObjectReference(report *v1alpha1.ConfigAuditReport) corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.RbacAssessmentReport) corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
-		ref := report.OwnerReferences[0].DeepCopy()
+		ref := report.OwnerReferences[0]
 
 		return corev1.ObjectReference{
 			Namespace:  report.Namespace,
@@ -136,11 +124,11 @@ func CreateObjectReference(report *v1alpha1.ConfigAuditReport) corev1.ObjectRefe
 	return corev1.ObjectReference{
 		Namespace: report.Labels[namespaceLabel],
 		Kind:      report.Labels[kindLabel],
-		Name:      report.Labels[nameLabel],
+		Name:      report.Annotations[nameAnnotation],
 	}
 }
 
-func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyReport {
+func CreatePolicyReport(report *v1alpha1.RbacAssessmentReport) *v1alpha2.PolicyReport {
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
@@ -148,16 +136,34 @@ func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyRepo
 			Labels:          reportLabels,
 			OwnerReferences: report.OwnerReferences,
 		},
-		Summary: v1alpha2.PolicyReportSummary{},
+		Summary: CreateSummary(report),
 		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 
-func GeneratePolicyReportName(report *v1alpha1.ConfigAuditReport) string {
-	name := report.Name
-	if len(report.OwnerReferences) == 1 {
-		name = report.OwnerReferences[0].Name
+func CreateSummary(report *v1alpha1.RbacAssessmentReport) v1alpha2.PolicyReportSummary {
+	summary := v1alpha2.PolicyReportSummary{}
+
+	for _, result := range report.Report.Checks {
+		if result.Success {
+			summary.Pass++
+		} else {
+			summary.Fail++
+		}
 	}
 
-	return fmt.Sprintf("%s-%s", reportPrefix, name)
+	return summary
+}
+
+func GeneratePolicyReportName(report *v1alpha1.RbacAssessmentReport) string {
+	return fmt.Sprintf("%s-%s", reportPrefix, report.Name)
+}
+
+func generateID(uid, name, policy, rule, result string) string {
+	id := fmt.Sprintf("%s_%s_%s_%s_%s", uid, name, policy, rule, result)
+
+	h := sha1.New()
+	h.Write([]byte(id))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

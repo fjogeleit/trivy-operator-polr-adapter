@@ -25,7 +25,7 @@ apiVersion: wgpolicyk8s.io/v1alpha2
 kind: PolicyReport
 metadata:
   labels:
-    managed-by: trivy-operator-polr-adapter
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
     trivy-operator.source: VulnerabilityReport
   name: trivy-vuln-polr-nginx-5fbc65fff
   namespace: test
@@ -80,7 +80,7 @@ apiVersion: wgpolicyk8s.io/v1alpha2
 kind: PolicyReport
 metadata:
   labels:
-    managed-by: trivy-operator-polr-adapter
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
     trivy-operator.source: ConfigAuditReport
   name: trivy-audit-polr-nginx-5fbc65fff
   namespace: test
@@ -118,44 +118,141 @@ summary:
   skip: 0
   warn: 0
 ```
-### CISKubeBenchReport
 
-Maps CISKubeBenchReports into ClusterPolicyReports.
+### RbacAssessmentReport
+
+Maps RbacAssessmentReport into PolicyReports.
+
+```yaml
+apiVersion: wgpolicyk8s.io/v1alpha2
+kind: PolicyReport
+metadata:
+  labels:
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
+    trivy-operator.source: RbacAssessmentReport
+  name: trivy-rbac-polr-role-57d656695f
+  namespace: kyverno
+  ownerReferences:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    blockOwnerDeletion: false
+    controller: true
+    kind: Role
+    name: kyverno:leaderelection
+    uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
+results:
+- category: Kubernetes Security Check
+  message: Check whether role permits update/create of a malicious pod
+  policy: Do not allow update/create of a malicious pod
+  properties:
+    1. message: Role permits create/update of a malicious pod
+    resultID: 5d52ad869c9da5e8533ae31a62b8e5a8a2f1838f
+  resources:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    name: kyverno:leaderelection
+    namespace: kyverno
+    uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
+  result: fail
+  rule: KSV048
+  severity: high
+  source: Trivy RbacAssessment
+  timestamp:
+    nanos: 0
+    seconds: 1661168982
+- category: Kubernetes Security Check
+  message: Check whether role permits allowing users in a rolebinding to add other
+    users to their rolebindings
+  policy: Do not allow users in a rolebinding to add other users to their rolebindings
+  properties:
+    resultID: 3de0c6a7f01df775fad425283b2cf56771e10902
+  resources:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    name: kyverno:leaderelection
+    namespace: kyverno
+    uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
+  result: pass
+  rule: KSV055
+  severity: low
+  source: Trivy RbacAssessment
+  timestamp:
+    nanos: 0
+    seconds: 1661168982
+summary:
+  error: 0
+  fail: 1
+  pass: 1
+  skip: 0
+  warn: 0
+```
+
+### ClusterRbacAssessmentReport
+
+Maps ClusterRbacAssessmentReport into PolicyReports.
 
 ```yaml
 apiVersion: wgpolicyk8s.io/v1alpha2
 kind: ClusterPolicyReport
 metadata:
+  creationTimestamp: "2022-08-22T18:15:30Z"
+  generation: 2
   labels:
-    managed-by: trivy-operator-polr-adapter
-    trivy-operator.source: CISKubeBenchReport
-  name: trivy-cis-cpolr-lima-rancher-desktop
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
+    trivy-operator.source: ClusterRbacAssessmentReport
+  name: trivy-rbac-cpolr-clusterrole-5585c7b9ff
   ownerReferences:
-  - apiVersion: aquasecurity.github.io/v1alpha1
-    kind: CISKubeBenchReport
-    name: lima-rancher-desktop
-    uid: 014fad85-58b6-4f94-bd49-1ee803a454fe
+  - apiVersion: rbac.authorization.k8s.io/v1
+    blockOwnerDeletion: false
+    controller: true
+    kind: ClusterRole
+    name: system:certificates.k8s.io:kubelet-serving-approver
+    uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
+  resourceVersion: "39436"
+  uid: 2296a252-b108-4d4a-b705-4b8983babe2b
 results:
-- category: Worker Node Security Configuration
-  message: |
-    Run the below command (based on the file location on your system) on the each worker node.
-    For example,
-    chmod 644 /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-  policy: 4.1 Worker Node Configuration Files
-  result: fail
-  rule: 4.1.1 Ensure that the kubelet service file permissions are set to 644 or more
-    restrictive (Automated)
-  scored: true
-  source: Trivy CIS Kube Bench
+- category: Kubernetes Security Check
+  message: Some workloads leverage configmaps to store sensitive data or configuration
+    parameters that affect runtime behavior that can be modified by an attacker or
+    combined with another issue to potentially lead to compromise.
+  policy: Do not allow management of configmaps
+  properties:
+    resultID: d06e66683ee5de1136d5996ae0f4e1ae9b5d85c7
+  resources:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    name: system:certificates.k8s.io:kubelet-serving-approver
+    uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
+  result: pass
+  rule: KSV049
+  severity: medium
+  source: Trivy RbacAssessment
   timestamp:
     nanos: 0
-    seconds: 1653506292
+    seconds: 1661165899
+- category: Kubernetes Security Check
+  message: Check whether role permits privilege escalation from node proxy
+  policy: Do not allow privilege escalation from node proxy
+  properties:
+    resultID: 519454bf1ec35b55d0d8041fb191017bf83519d3
+  resources:
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    name: system:certificates.k8s.io:kubelet-serving-approver
+    uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
+  result: pass
+  rule: KSV047
+  severity: high
+  source: Trivy RbacAssessment
+  timestamp:
+    nanos: 0
+    seconds: 1661165899
 summary:
   error: 0
-  fail: 11
+  fail: 0
   pass: 2
   skip: 0
-  warn: 36
+  warn: 0
+
 ```
 
 ## Policy Reporter UI Screenshots

@@ -1,4 +1,4 @@
-package vulnr
+package exposedsecret
 
 import (
 	"context"
@@ -19,32 +19,32 @@ type Client struct {
 }
 
 func (e *Client) StartWatching(ctx context.Context) error {
-	return e.client.Watch(&source.Kind{Type: &v1alpha1.VulnerabilityReport{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
+	return e.client.Watch(&source.Kind{Type: &v1alpha1.ExposedSecretReport{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
 		CreateFunc: func(event event.CreateEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.VulnerabilityReport); ok {
+			if report, ok := event.Object.(*v1alpha1.ExposedSecretReport); ok {
 				err := e.polrClient.GenerateReport(ctx, report)
 				if err != nil {
-					log.Printf("[ERROR] VulnerabilityReport: Failed to process report %s; %s", report.Name, err)
+					log.Printf("[ERROR] ExposedSecretReport: Failed to process report %s; %s", report.Name, err)
 				}
 			}
 
 			return true
 		},
 		UpdateFunc: func(event event.UpdateEvent) bool {
-			if report, ok := event.ObjectNew.(*v1alpha1.VulnerabilityReport); ok {
+			if report, ok := event.ObjectNew.(*v1alpha1.ExposedSecretReport); ok {
 				err := e.polrClient.GenerateReport(ctx, report)
 				if err != nil {
-					log.Printf("[ERROR] VulnerabilityReport: Failed to process report %s; %s", report.Name, err)
+					log.Printf("[ERROR] ExposedSecretReport: Failed to process report %s; %s", report.Name, err)
 				}
 			}
 
 			return true
 		},
 		DeleteFunc: func(event event.DeleteEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.VulnerabilityReport); ok {
+			if report, ok := event.Object.(*v1alpha1.ExposedSecretReport); ok {
 				err := e.polrClient.DeleteReport(ctx, report)
 				if err != nil {
-					log.Printf("[ERROR] VulnerabilityReport: Failed to delete report %s; %s", report.Name, err)
+					log.Printf("[ERROR] ExposedSecretReport: Failed to delete report %s; %s", report.Name, err)
 				}
 			}
 

@@ -43,7 +43,12 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 
 func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.VulnerabilityReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		return p.k8sClient.PolicyReports(report.Namespace).Delete(ctx, GeneratePolicyReportName(report), v1.DeleteOptions{})
+		err := p.k8sClient.PolicyReports(report.Namespace).Delete(ctx, GeneratePolicyReportName(report), v1.DeleteOptions{})
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
 	})
 }
 

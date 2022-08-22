@@ -1,4 +1,4 @@
-package auditr
+package exposedsecret
 
 import (
 	"fmt"
@@ -20,24 +20,25 @@ const (
 )
 
 const (
-	resultSource = "Trivy ConfigAudit"
-	reportPrefix = "trivy-audit-polr"
+	trivySource  = "Trivy ExposedSecrets"
+	reportPrefix = "trivy-exp-secret-polr"
+	category     = "ExposedSecret"
 
 	containerLabel = "trivy-operator.container.name"
 	kindLabel      = "trivy-operator.resource.kind"
-	nameLabel      = "trivy-operator.resource.name"
+	nameAnnotation = "trivy-operator.resource.name"
 	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
 var (
 	reportLabels = map[string]string{
 		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ConfigAuditReport",
+		"trivy-operator.source":        "ExposedSecretReport",
 	}
 )
 
-func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
-	if len(report.Report.Checks) == 0 {
+func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+	if len(report.Report.Secrets) == 0 {
 		return nil, false
 	}
 
@@ -46,65 +47,28 @@ func Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyReport) (*v1al
 	if polr == nil {
 		polr = CreatePolicyReport(report)
 	} else {
-		polr.Summary = v1alpha2.PolicyReportSummary{}
+		polr.Summary = CreateSummary(report)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
 
 	res := CreateObjectReference(report)
 
-	for _, check := range report.Report.Checks {
-		props := map[string]string{}
-
-		messages := []string{}
-		for _, m := range check.Messages {
-			if m == "" {
-				continue
-			}
-
-			messages = append(messages, m)
-		}
-
-		if check.Success {
-			polr.Summary.Pass++
-		} else {
-			polr.Summary.Fail++
-		}
-
-		message := check.Description
-		if len(messages) == 1 {
-			message = messages[0]
-
-			props["description"] = check.Description
-		} else {
-			for index, msg := range messages {
-				props[fmt.Sprintf("%d. message", index)] = msg
-			}
-		}
-
+	for _, check := range report.Report.Secrets {
 		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
-			Policy:     check.Title,
-			Rule:       check.ID,
-			Message:    message,
-			Properties: props,
-			Resources:  []corev1.ObjectReference{res},
-			Result:     MapResult(check.Success),
-			Severity:   MapServerity(check.Severity),
-			Category:   check.Category,
-			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     resultSource,
+			Policy:    check.Title,
+			Rule:      check.RuleID,
+			Message:   check.Match,
+			Resources: []corev1.ObjectReference{res},
+			Result:    v1alpha2.StatusWarn,
+			Severity:  MapServerity(check.Severity),
+			Category:  check.Category,
+			Timestamp: *report.CreationTimestamp.ProtoTime(),
+			Source:    trivySource,
 		})
 	}
 
 	return polr, updated
-}
-
-func MapResult(success bool) v1alpha2.PolicyResult {
-	if success {
-		return v1alpha2.StatusPass
-	}
-
-	return v1alpha2.StatusFail
 }
 
 func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
@@ -114,16 +78,14 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 		return v1alpha2.SeverityLow
 	} else if severity == v1alpha1.SeverityMedium {
 		return v1alpha2.SeverityMedium
-	} else if severity == v1alpha1.SeverityHigh {
-		return v1alpha2.SeverityHigh
 	}
 
 	return v1alpha2.SeverityHigh
 }
 
-func CreateObjectReference(report *v1alpha1.ConfigAuditReport) corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.ExposedSecretReport) corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
-		ref := report.OwnerReferences[0].DeepCopy()
+		ref := report.OwnerReferences[0]
 
 		return corev1.ObjectReference{
 			Namespace:  report.Namespace,
@@ -136,11 +98,11 @@ func CreateObjectReference(report *v1alpha1.ConfigAuditReport) corev1.ObjectRefe
 	return corev1.ObjectReference{
 		Namespace: report.Labels[namespaceLabel],
 		Kind:      report.Labels[kindLabel],
-		Name:      report.Labels[nameLabel],
+		Name:      report.Annotations[nameAnnotation],
 	}
 }
 
-func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyReport {
+func CreatePolicyReport(report *v1alpha1.ExposedSecretReport) *v1alpha2.PolicyReport {
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
@@ -148,12 +110,18 @@ func CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyRepo
 			Labels:          reportLabels,
 			OwnerReferences: report.OwnerReferences,
 		},
-		Summary: v1alpha2.PolicyReportSummary{},
+		Summary: CreateSummary(report),
 		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 
-func GeneratePolicyReportName(report *v1alpha1.ConfigAuditReport) string {
+func CreateSummary(report *v1alpha1.ExposedSecretReport) v1alpha2.PolicyReportSummary {
+	return v1alpha2.PolicyReportSummary{
+		Warn: len(report.Report.Secrets),
+	}
+}
+
+func GeneratePolicyReportName(report *v1alpha1.ExposedSecretReport) string {
 	name := report.Name
 	if len(report.OwnerReferences) == 1 {
 		name = report.OwnerReferences[0].Name

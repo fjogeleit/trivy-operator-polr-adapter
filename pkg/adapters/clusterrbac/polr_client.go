@@ -1,4 +1,4 @@
-package auditr
+package clusterrbac
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ type PolicyReportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
 }
 
-func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ConfigAuditReport) error {
+func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterRbacAssessmentReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		polr, err := p.k8sClient.PolicyReports(report.Namespace).Get(ctx, GeneratePolicyReportName(report), v1.GetOptions{})
+		polr, err := p.k8sClient.ClusterPolicyReports().Get(ctx, GeneratePolicyReportName(report), v1.GetOptions{})
 		if !errors.IsNotFound(err) && err != nil {
 			return err
 		} else if errors.IsNotFound(err) {
@@ -28,22 +28,22 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 		if polr == nil {
 			return nil
 		} else if updated {
-			_, err = p.k8sClient.PolicyReports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
+			_, err = p.k8sClient.ClusterPolicyReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {
-			_, err = p.k8sClient.PolicyReports(report.Namespace).Create(ctx, polr, v1.CreateOptions{})
+			_, err = p.k8sClient.ClusterPolicyReports().Create(ctx, polr, v1.CreateOptions{})
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to create PolicyReport in namespace %s: %s", report.Namespace, err)
+			return fmt.Errorf("failed to create ClusterPolicyReport %s: %s", report.Name, err)
 		}
 
 		return nil
 	})
 }
 
-func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ConfigAuditReport) error {
+func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterRbacAssessmentReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := p.k8sClient.PolicyReports(report.Namespace).Delete(ctx, GeneratePolicyReportName(report), v1.DeleteOptions{})
+		err := p.k8sClient.ClusterPolicyReports().Delete(ctx, GeneratePolicyReportName(report), v1.DeleteOptions{})
 		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}

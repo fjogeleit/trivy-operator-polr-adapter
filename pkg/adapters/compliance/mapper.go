@@ -20,14 +20,14 @@ const (
 )
 
 const (
-	source       = "Trivy Compliance"
+	trivySource  = "Trivy Compliance"
 	reportPrefix = "trivy-compliance-cpolr"
 )
 
 var (
 	reportLabels = map[string]string{
-		"managed-by":            "trivy-operator-polr-adapter",
-		"trivy-operator.source": "ClusterComplianceDetailReport",
+		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+		"trivy-operator.source":        "ClusterComplianceDetailReport",
 	}
 )
 
@@ -38,7 +38,7 @@ func Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alpha2.ClusterP
 		polr = CreatePolicyReport(report)
 	} else {
 		polr.Summary = v1alpha2.PolicyReportSummary{}
-		polr.Results = []*v1alpha2.PolicyReportResult{}
+		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
 
@@ -49,9 +49,9 @@ func Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alpha2.ClusterP
 					"Description": check.Description,
 				}
 
-				res := []*corev1.ObjectReference{}
+				res := []corev1.ObjectReference{}
 				if details.Name != "" {
-					res = append(res, &corev1.ObjectReference{
+					res = append(res, corev1.ObjectReference{
 						Kind:      result.ObjectType,
 						Name:      details.Name,
 						Namespace: details.Namespace,
@@ -64,14 +64,14 @@ func Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alpha2.ClusterP
 					props["id"] = result.ID
 				}
 
-				polr.Results = append(polr.Results, &v1alpha2.PolicyReportResult{
+				polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 					Policy:     check.Name,
 					Rule:       result.ID,
 					Message:    details.Msg,
 					Result:     v1alpha2.StatusFail,
 					Severity:   MapServerity(check.Severity),
 					Timestamp:  *report.Report.UpdateTimestamp.ProtoTime(),
-					Source:     source,
+					Source:     trivySource,
 					Resources:  res,
 					Properties: props,
 				})
@@ -83,7 +83,7 @@ func Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alpha2.ClusterP
 }
 
 func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
-	if severity == v1alpha1.SeverityUnknown || severity == v1alpha1.SeverityNone {
+	if severity == v1alpha1.SeverityUnknown {
 		return ""
 	} else if severity == v1alpha1.SeverityLow {
 		return v1alpha2.SeverityLow
@@ -111,7 +111,7 @@ func CreatePolicyReport(report *v1alpha1.ClusterComplianceDetailReport) *v1alpha
 		Summary: v1alpha2.PolicyReportSummary{
 			Fail: report.Report.Summary.FailCount,
 		},
-		Results: []*v1alpha2.PolicyReportResult{},
+		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 

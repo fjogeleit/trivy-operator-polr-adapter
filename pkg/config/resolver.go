@@ -1,42 +1,60 @@
 package config
 
 import (
-	"time"
+	"context"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/kubebench"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/rbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
 
-	"github.com/aquasecurity/trivy-operator/pkg/generated/clientset/versioned"
+	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity"
+	starboard "github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/kyverno/kyverno/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
+	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+)
+
+var (
+	StarboardGroupVersion = schema.GroupVersion{
+		Group:   aquasecurity.GroupName,
+		Version: starboard.CISKubeBenchReportCRVersion,
+	}
+
+	StarboardSchemaBuilder = runtime.NewSchemeBuilder(func(s *runtime.Scheme) error {
+		s.AddKnownTypes(
+			StarboardGroupVersion,
+			&starboard.CISKubeBenchReport{},
+			&starboard.CISKubeBenchReportList{},
+		)
+
+		meta.AddToGroupVersion(s, StarboardGroupVersion)
+		return nil
+	})
 )
 
 // Resolver manages dependencies
 type Resolver struct {
-	config           *Config
-	trivyClient      *versioned.Clientset
-	polrClient       *v1alpha2.Wgpolicyk8sV1alpha2Client
-	k8sConfig        *rest.Config
-	auditrClient     *auditr.Client
-	vulnClient       *vulnr.Client
-	kubebenchClient  *kubebench.Client
-	complianceClient *compliance.Client
-}
-
-func (r *Resolver) trivyAPI() (*versioned.Clientset, error) {
-	if r.trivyClient != nil {
-		return r.trivyClient, nil
-	}
-	client, err := versioned.NewForConfig(r.k8sConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	r.trivyClient = client
-
-	return client, nil
+	config            *Config
+	polrClient        *v1alpha2.Wgpolicyk8sV1alpha2Client
+	k8sConfig         *rest.Config
+	auditrClient      *auditr.Client
+	vulnrClient       *vulnr.Client
+	complianceClient  *compliance.Client
+	rbacClient        *rbac.Client
+	clusterrbacClient *clusterrbac.Client
+	secretClient      *exposedsecret.Client
+	kubeBenchClient   *kubebench.Client
+	mgr               manager.Manager
 }
 
 func (r *Resolver) polrAPI() (*v1alpha2.Wgpolicyk8sV1alpha2Client, error) {
@@ -52,35 +70,28 @@ func (r *Resolver) polrAPI() (*v1alpha2.Wgpolicyk8sV1alpha2Client, error) {
 
 	return client, nil
 }
-func (r *Resolver) k8sClients() (*versioned.Clientset, *v1alpha2.Wgpolicyk8sV1alpha2Client, error) {
-	client, err := r.trivyAPI()
-	if err != nil {
-		return nil, nil, err
-	}
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, nil, err
+
+func (r *Resolver) Manager() (manager.Manager, error) {
+	if r.mgr != nil {
+		return r.mgr, nil
 	}
 
-	return client, polrClient, nil
-}
+	schema := runtime.NewScheme()
 
-// VulnerabilityReportClient resolver method
-func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
-	if r.vulnClient != nil {
-		return r.vulnClient, nil
-	}
+	v1alpha1.AddToScheme(schema)
+	StarboardSchemaBuilder.AddToScheme(schema)
 
-	client, polrClient, err := r.k8sClients()
+	mgr, err := manager.New(r.k8sConfig, manager.Options{
+		Scheme:             schema,
+		MetricsBindAddress: "0",
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	vulnClient := vulnr.NewClient(client, polrClient, 5*time.Second)
+	r.mgr = mgr
 
-	r.vulnClient = vulnClient
-
-	return vulnClient, nil
+	return r.mgr, nil
 }
 
 // ConfigAuditReportClient resolver method
@@ -89,52 +100,208 @@ func (r *Resolver) ConfigAuditReportClient() (*auditr.Client, error) {
 		return r.auditrClient, nil
 	}
 
-	client, polrClient, err := r.k8sClients()
+	polrClient, err := r.polrAPI()
 	if err != nil {
 		return nil, err
 	}
 
-	auditrClient := auditr.NewClient(client, polrClient, 5*time.Second)
-
-	r.auditrClient = auditrClient
-
-	return auditrClient, nil
-}
-
-// CISKubeBenchReportClient resolver method
-func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
-	if r.kubebenchClient != nil {
-		return r.kubebenchClient, nil
-	}
-
-	client, polrClient, err := r.k8sClients()
+	mgr, err := r.Manager()
 	if err != nil {
 		return nil, err
 	}
 
-	kubebenchClient := kubebench.NewClient(client, polrClient, 5*time.Second)
+	contr, err := controller.New("configaudit", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	r.kubebenchClient = kubebenchClient
+	r.auditrClient = auditr.NewClient(contr, polrClient)
 
-	return kubebenchClient, nil
+	return r.auditrClient, nil
 }
 
-// CompliaceReportClient resolver method
-func (r *Resolver) CompliaceReportClient() (*compliance.Client, error) {
+// VulnerabilityReportClient resolver method
+func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
+	if r.vulnrClient != nil {
+		return r.vulnrClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("vulnerability", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.vulnrClient = vulnr.NewClient(contr, polrClient)
+
+	return r.vulnrClient, nil
+}
+
+// ComplianceReportClient resolver method
+func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 	if r.complianceClient != nil {
 		return r.complianceClient, nil
 	}
 
-	client, polrClient, err := r.k8sClients()
+	polrClient, err := r.polrAPI()
 	if err != nil {
 		return nil, err
 	}
 
-	complianceClient := compliance.NewClient(client, polrClient, 5*time.Second)
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
 
-	r.complianceClient = complianceClient
+	contr, err := controller.New("compliance", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
 
-	return complianceClient, nil
+	r.complianceClient = compliance.NewClient(contr, polrClient)
+
+	return r.complianceClient, nil
+}
+
+// RbacAssessmentReportClient resolver method
+func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
+	if r.rbacClient != nil {
+		return r.rbacClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("rbacassessment", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.rbacClient = rbac.NewClient(contr, polrClient)
+
+	return r.rbacClient, nil
+}
+
+// ClusterRbacAssessmentReportClient resolver method
+func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, error) {
+	if r.clusterrbacClient != nil {
+		return r.clusterrbacClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("clusterrbacassessment", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.clusterrbacClient = clusterrbac.NewClient(contr, polrClient)
+
+	return r.clusterrbacClient, nil
+}
+
+// RbacAssessmentReportClient resolver method
+func (r *Resolver) ExposedSecretReportClient() (*exposedsecret.Client, error) {
+	if r.secretClient != nil {
+		return r.secretClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("exposedsecret", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.secretClient = exposedsecret.NewClient(contr, polrClient)
+
+	return r.secretClient, nil
+}
+
+// CISKubeBenchReportClient resolver method
+func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
+	if r.kubeBenchClient != nil {
+		return r.kubeBenchClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("ciskubebench", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.kubeBenchClient = kubebench.NewClient(contr, polrClient)
+
+	return r.kubeBenchClient, nil
 }
 
 // NewResolver constructor function
