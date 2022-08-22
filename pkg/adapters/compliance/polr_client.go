@@ -41,7 +41,12 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 
 func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterComplianceDetailReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		return p.k8sClient.ClusterPolicyReports().Delete(ctx, GeneratePolicyReportName(report.Name), v1.DeleteOptions{})
+		err := p.k8sClient.ClusterPolicyReports().Delete(ctx, GeneratePolicyReportName(report.Name), v1.DeleteOptions{})
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
 	})
 }
 

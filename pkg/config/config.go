@@ -20,11 +20,23 @@ type ComplianceReports struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
+// RbacAssessmentReports configuration
+type RbacAssessmentReports struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
+// ExposedSecretReports configuration
+type ExposedSecretReports struct {
+	Enabled bool `mapstructure:"enabled"`
+}
+
 // Config of the Tracee Adapter
 type Config struct {
-	Kubeconfig           string               `mapstructure:"kubeconfig"`
-	VulnerabilityReports VulnerabilityReports `mapstructure:"vulnerabilityReports"`
-	ConfigAuditReports   ConfigAuditReports   `mapstructure:"configAuditReports"`
-	CISKubeBenchReports  CISKubeBenchReports  `mapstructure:"cisKubeBenchReports"`
-	ComplianceReports    ComplianceReports    `mapstructure:"complianceReports"`
+	Kubeconfig            string                `mapstructure:"kubeconfig"`
+	VulnerabilityReports  VulnerabilityReports  `mapstructure:"vulnerabilityReports"`
+	ConfigAuditReports    ConfigAuditReports    `mapstructure:"configAuditReports"`
+	CISKubeBenchReports   CISKubeBenchReports   `mapstructure:"cisKubeBenchReports"`
+	ComplianceReports     ComplianceReports     `mapstructure:"complianceReports"`
+	RbacAssessmentReports RbacAssessmentReports `mapstructure:"rbacAssessmentReports"`
+	ExposedSecretReports  ExposedSecretReports  `mapstructure:"exposedSecretReports"`
 }

@@ -3,7 +3,7 @@ package kubebench
 import (
 	"fmt"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,14 +26,14 @@ const (
 )
 
 const (
-	source       = "Trivy CIS Kube Bench"
-	reportPrefix = "trivy-cis-cpolr"
+	trivySource  = "CIS Kube Bench"
+	reportPrefix = "cis-kube-bench-cpolr"
 )
 
 var (
 	reportLabels = map[string]string{
-		"managed-by":            "trivy-operator-polr-adapter",
-		"trivy-operator.source": "CISKubeBenchReport",
+		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+		"trivy-operator.source":        "CISKubeBenchReport",
 	}
 )
 
@@ -44,7 +44,7 @@ func Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport
 		polr = CreatePolicyReport(report)
 	} else {
 		polr.Summary = v1alpha2.PolicyReportSummary{}
-		polr.Results = []*v1alpha2.PolicyReportResult{}
+		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
 
@@ -62,7 +62,7 @@ func Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport
 					polr.Summary.Skip++
 				}
 
-				polr.Results = append(polr.Results, &v1alpha2.PolicyReportResult{
+				polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 					Policy:    fmt.Sprintf("%s %s", test.Section, test.Desc),
 					Rule:      fmt.Sprintf("%s %s", result.TestNumber, result.TestDesc),
 					Message:   result.Remediation,
@@ -70,7 +70,7 @@ func Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport
 					Result:    MapResult(result.Status),
 					Category:  section.Text,
 					Timestamp: *report.CreationTimestamp.ProtoTime(),
-					Source:    source,
+					Source:    trivySource,
 				})
 			}
 		}
@@ -120,7 +120,7 @@ func CreatePolicyReport(report *v1alpha1.CISKubeBenchReport) *v1alpha2.ClusterPo
 			},
 		},
 		Summary: v1alpha2.PolicyReportSummary{},
-		Results: []*v1alpha2.PolicyReportResult{},
+		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 

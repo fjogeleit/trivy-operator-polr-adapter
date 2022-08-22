@@ -1,7 +1,7 @@
 GO ?= go
 BUILD ?= build
 REPO ?= ghcr.io/fjogeleit/trivy-operator-polr-adapter
-IMAGE_TAG ?= 0.0.1
+IMAGE_TAG ?= 0.1.0
 LD_FLAGS="-s -w"
 PLATFORMS ?= linux/arm64,linux/amd64
 

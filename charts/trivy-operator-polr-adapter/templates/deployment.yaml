@@ -36,11 +36,14 @@ spec:
             - --enable-config-audit={{ .Values.adapters.configAuditReports.enabled }}
             - --enable-kube-bench={{ .Values.adapters.cisKubeBenchReports.enabled }}
             - --enable-compliance={{ .Values.adapters.complianceReports.enabled }}
+            - --enable-rbac-assessment={{ .Values.adapters.rbacAssessmentReports.enabled }}
+            - --enable-exposed-secrets={{ .Values.adapters.exposedSecretReports.enabled }}
           readinessProbe:
             exec:
               command:
               - /app/trivy-operator-polr-adapter
               - version
+          resources:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

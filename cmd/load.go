@@ -42,6 +42,12 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("enable-compliancer"); flag != nil {
 		v.BindPFlag("cisKubeBenchReports.enabled", flag)
 	}
+	if flag := cmd.Flags().Lookup("enable-rbac-assessment"); flag != nil {
+		v.BindPFlag("rbacAssessmentReports.enabled", flag)
+	}
+	if flag := cmd.Flags().Lookup("enable-exposed-secrets"); flag != nil {
+		v.BindPFlag("exposedSecretReports.enabled", flag)
+	}
 
 	c := &config.Config{}
 

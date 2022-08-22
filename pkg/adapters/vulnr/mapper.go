@@ -21,7 +21,7 @@ const (
 )
 
 const (
-	source       = "Trivy Vulnerability"
+	trivySource  = "Trivy Vulnerability"
 	reportPrefix = "trivy-vuln-polr"
 	category     = "Vulnerability Scan"
 
@@ -33,8 +33,9 @@ const (
 
 var (
 	reportLabels = map[string]string{
-		"managed-by":            "trivy-operator-polr-adapter",
-		"trivy-operator.source": "VulnerabilityReport",
+		"managed-by":                   "trivy-operator-polr-adapter",
+		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+		"trivy-operator.source":        "VulnerabilityReport",
 	}
 )
 
@@ -49,7 +50,7 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 		polr = CreatePolicyReport(report)
 	} else {
 		polr.Summary = CreateSummary(report.Report.Summary)
-		polr.Results = []*v1alpha2.PolicyReportResult{}
+		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
 
@@ -82,16 +83,16 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			props["primaryLink"] = vuln.PrimaryLink
 		}
 
-		polr.Results = append(polr.Results, &v1alpha2.PolicyReportResult{
+		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 			Policy:     vuln.VulnerabilityID,
 			Message:    vuln.Title,
 			Properties: props,
-			Resources:  []*corev1.ObjectReference{res},
+			Resources:  []corev1.ObjectReference{res},
 			Result:     result,
 			Severity:   MapServerity(vuln.Severity),
 			Category:   category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     source,
+			Source:     trivySource,
 		})
 	}
 
@@ -99,7 +100,7 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 }
 
 func MapResult(severity v1alpha1.Severity) v1alpha2.PolicyResult {
-	if severity == v1alpha1.SeverityUnknown || severity == v1alpha1.SeverityNone {
+	if severity == v1alpha1.SeverityUnknown {
 		return v1alpha2.StatusSkip
 	} else if severity == v1alpha1.SeverityLow {
 		return v1alpha2.StatusWarn
@@ -111,7 +112,7 @@ func MapResult(severity v1alpha1.Severity) v1alpha2.PolicyResult {
 }
 
 func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
-	if severity == v1alpha1.SeverityUnknown || severity == v1alpha1.SeverityNone {
+	if severity == v1alpha1.SeverityUnknown {
 		return ""
 	} else if severity == v1alpha1.SeverityLow {
 		return v1alpha2.SeverityLow
@@ -122,11 +123,11 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 	return v1alpha2.SeverityHigh
 }
 
-func CreateObjectReference(report *v1alpha1.VulnerabilityReport) *corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.VulnerabilityReport) corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
 		ref := report.OwnerReferences[0].DeepCopy()
 
-		return &corev1.ObjectReference{
+		return corev1.ObjectReference{
 			Namespace:  report.Namespace,
 			APIVersion: ref.APIVersion,
 			Kind:       ref.Kind,
@@ -134,7 +135,7 @@ func CreateObjectReference(report *v1alpha1.VulnerabilityReport) *corev1.ObjectR
 			UID:        ref.UID,
 		}
 	}
-	return &corev1.ObjectReference{
+	return corev1.ObjectReference{
 		Namespace: report.Labels[namespaceLabel],
 		Kind:      report.Labels[kindLabel],
 		Name:      report.Labels[nameLabel],
@@ -150,7 +151,7 @@ func CreatePolicyReport(report *v1alpha1.VulnerabilityReport) *v1alpha2.PolicyRe
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: CreateSummary(report.Report.Summary),
-		Results: []*v1alpha2.PolicyReportResult{},
+		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 
