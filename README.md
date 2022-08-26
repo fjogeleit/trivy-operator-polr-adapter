@@ -35,8 +35,18 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 |--enable-compliance |`adapters.complianceReports.enabled` | Enables the transformation of ClusterComplianceDetailReport into ClusterPolicyReports<br>(Not implemented in Trivy Operator yet) | `false`             |
 |--enable-kube-bench |`adapters.cisKubeBenchReports.enabled` | Enables the transformation of CISKubeBenchReports into ClusterPolicyReports<br>(Not available in newer version of Trivy Operator) | `false`             |
 
-## Integreted Adapters
+## Available Sources
 
+Sources of the PolicyReportResults can be used to filter different Reports from metrics, views or notifications in Policy Reporter
+
+| Source               | TrivyReport Report                                 |
+|----------------------|----------------------------------------------------|
+| Trivy ConfigAudit    | ConfigAuditReport                                  |
+| Trivy Vulnerability  | VulnerabilityReport                                |
+| Trivy ExposedSecrets | ExposedSecretReport                                |
+| Trivy RbacAssessment | ClusterRbacAssessmentReport / RbacAssessmentReport |
+
+## Integreted Adapters
 ### VulnerabilityReports
 
 Maps VulnerabilityReports into PolicyReports with the relation 1:1. The PolicyReport is referenced with the scanned resource like the VulnerabilityReport itself.
