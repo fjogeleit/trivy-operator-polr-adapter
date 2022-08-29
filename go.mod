@@ -3,7 +3,7 @@ module github.com/fjogeleit/trivy-operator-polr-adapter
 go 1.18
 
 require (
-	github.com/aquasecurity/starboard v0.15.7
+	github.com/aquasecurity/starboard v0.15.8
 	github.com/aquasecurity/trivy-operator v0.1.6
 	github.com/kyverno/kyverno v1.7.2
 	github.com/spf13/cobra v1.5.0
