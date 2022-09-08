@@ -4,14 +4,14 @@ go 1.18
 
 require (
 	github.com/aquasecurity/starboard v0.15.7
-	github.com/aquasecurity/trivy-operator v0.1.6
+	github.com/aquasecurity/trivy-operator v0.1.9
 	github.com/kyverno/kyverno v1.7.2
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	golang.org/x/net v0.0.0-20220812174116-3211cb980234
-	k8s.io/api v0.24.4
-	k8s.io/apimachinery v0.24.4
-	k8s.io/client-go v0.24.4
+	k8s.io/api v0.25.0
+	k8s.io/apimachinery v0.25.0
+	k8s.io/client-go v0.25.0
 	sigs.k8s.io/controller-runtime v0.12.3
 )
 
