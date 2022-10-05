@@ -4,18 +4,19 @@ go 1.18
 
 require (
 	github.com/aquasecurity/starboard v0.15.8
-	github.com/aquasecurity/trivy-operator v0.1.6
+	github.com/aquasecurity/trivy-operator v0.3.0
 	github.com/kyverno/kyverno v1.7.3
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
-	golang.org/x/net v0.0.0-20220812174116-3211cb980234
-	k8s.io/api v0.25.0
-	k8s.io/apimachinery v0.25.0
-	k8s.io/client-go v0.25.0
+	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c
+	k8s.io/api v0.25.1
+	k8s.io/apimachinery v0.25.1
+	k8s.io/client-go v0.25.1
 	sigs.k8s.io/controller-runtime v0.13.0
 )
 
 require (
+	github.com/aquasecurity/trivy-db v0.0.0-20220828183925-77efaf3c20af // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -30,7 +31,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/google/go-cmp v0.5.8 // indirect
+	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
