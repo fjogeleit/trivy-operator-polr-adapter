@@ -54,13 +54,17 @@ func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v
 	}
 
 	res := CreateObjectReference(report)
+	duplCache := map[string]bool{}
 
 	for _, check := range report.Report.Checks {
-
 		result := MapResult(check.Success)
+		id := generateID(string(res.UID), res.Name, check.Title, check.ID, string(result))
+		if duplCache[id] {
+			continue
+		}
 
 		props := map[string]string{
-			"resultID": generateID(string(res.UID), res.Name, check.Title, check.ID, string(result)),
+			"resultID": id,
 		}
 
 		var index int
@@ -84,6 +88,8 @@ func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     trivySource,
 		})
+
+		duplCache[id] = true
 	}
 
 	return polr, updated

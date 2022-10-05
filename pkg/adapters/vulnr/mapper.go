@@ -55,14 +55,19 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 	}
 
 	res := CreateObjectReference(report)
+	duplCache := map[string]bool{}
 
 	for _, vuln := range report.Report.Vulnerabilities {
+		result := MapResult(vuln.Severity)
+		id := generateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result))
+		if duplCache[id] {
+			continue
+		}
+
 		var score float64
 		if vuln.Score != nil {
 			score = *vuln.Score
 		}
-
-		result := MapResult(vuln.Severity)
 
 		props := map[string]string{
 			"artifact.repository": report.Report.Artifact.Repository,
@@ -70,7 +75,7 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			"registry.server":     report.Report.Registry.Server,
 			"score":               fmt.Sprint(score),
 			"resource":            vuln.Resource,
-			"resultID":            generateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result)),
+			"resultID":            id,
 		}
 
 		if vuln.FixedVersion != "" {
@@ -94,6 +99,8 @@ func Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     trivySource,
 		})
+
+		duplCache[id] = true
 	}
 
 	return polr, updated
