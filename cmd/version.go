@@ -11,7 +11,7 @@ func newVersionCMD() *cobra.Command {
 		Use:   "version",
 		Short: "CLI Version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("v0.1.0")
+			fmt.Println("v0.1.1")
 		},
 	}
 }

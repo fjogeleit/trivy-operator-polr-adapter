@@ -1,6 +1,7 @@
 package exposedsecret
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
@@ -54,7 +55,15 @@ func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1
 
 	res := CreateObjectReference(report)
 
+	duplCache := map[string]bool{}
+
 	for _, check := range report.Report.Secrets {
+		id := generateID(string(res.UID), res.Name, check.Title, check.RuleID, check.Match, check.Category)
+
+		if duplCache[id] {
+			continue
+		}
+
 		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 			Policy:    check.Title,
 			Rule:      check.RuleID,
@@ -65,7 +74,12 @@ func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1
 			Category:  check.Category,
 			Timestamp: *report.CreationTimestamp.ProtoTime(),
 			Source:    trivySource,
+			Properties: map[string]string{
+				"resultID": id,
+			},
 		})
+
+		duplCache[id] = true
 	}
 
 	return polr, updated
@@ -128,4 +142,13 @@ func GeneratePolicyReportName(report *v1alpha1.ExposedSecretReport) string {
 	}
 
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
+}
+
+func generateID(uid, name, policy, rule, result, category string) string {
+	id := fmt.Sprintf("%s_%s_%s_%s_%s_%s", uid, name, policy, rule, result, category)
+
+	h := sha1.New()
+	h.Write([]byte(id))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
