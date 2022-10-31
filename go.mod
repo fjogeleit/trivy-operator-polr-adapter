@@ -6,7 +6,7 @@ require (
 	github.com/aquasecurity/starboard v0.15.11
 	github.com/aquasecurity/trivy-operator v0.5.0
 	github.com/kyverno/kyverno v1.8.0
-	github.com/spf13/cobra v1.6.0
+	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 	golang.org/x/net v0.1.0
 	k8s.io/api v0.25.3
