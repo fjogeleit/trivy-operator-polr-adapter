@@ -103,9 +103,13 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 		return v1alpha2.SeverityLow
 	} else if severity == v1alpha1.SeverityMedium {
 		return v1alpha2.SeverityMedium
+	} else if severity == v1alpha1.SeverityHigh {
+		return v1alpha2.SeverityHigh
+	} else if severity == v1alpha1.SeverityCritical {
+		return v1alpha2.SeverityCritical
 	}
 
-	return v1alpha2.SeverityHigh
+	return v1alpha2.SeverityInfo
 }
 
 func CreateObjectReference(report *v1alpha1.ClusterRbacAssessmentReport) corev1.ObjectReference {
