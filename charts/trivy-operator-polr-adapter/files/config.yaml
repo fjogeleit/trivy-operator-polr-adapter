@@ -1,0 +1,36 @@
+vulnerabilityReports:
+  enabled: {{ .Values.adapters.vulnerabilityReports.enabled }}
+  {{- with .Values.adapters.vulnerabilityReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+configAuditReports:
+  enabled: {{ .Values.adapters.configAuditReports.enabled }}
+  {{- with .Values.adapters.configAuditReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+cisKubeBenchReports:
+  enabled: {{ .Values.adapters.cisKubeBenchReports.enabled }}
+  {{- with .Values.adapters.cisKubeBenchReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+complianceReports:
+  enabled: {{ .Values.adapters.complianceReports.enabled }}
+  {{- with .Values.adapters.complianceReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+rbacAssessmentReports:
+  enabled: {{ .Values.adapters.rbacAssessmentReports.enabled }}
+  {{- with .Values.adapters.rbacAssessmentReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+exposedSecretReports:
+  enabled: {{ .Values.adapters.exposedSecretReports.enabled }}
+  {{- with .Values.adapters.exposedSecretReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

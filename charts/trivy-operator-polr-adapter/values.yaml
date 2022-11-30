@@ -4,7 +4,7 @@ image:
   registry: ghcr.io
   repository: fjogeleit/trivy-operator-polr-adapter
   pullPolicy: IfNotPresent
-  tag: 0.1.5
+  tag: 0.2.0
 
 imagePullSecrets: []
 nameOverride: ""
@@ -13,16 +13,23 @@ fullnameOverride: ""
 adapters:
   vulnerabilityReports:
     enabled: true
+    # apply labels from the source report
+    applyLabels: []
   configAuditReports:
     enabled: true
+    applyLabels: []
   cisKubeBenchReports:
     enabled: false
+    applyLabels: []
   complianceReports:
     enabled: false
+    applyLabels: []
   rbacAssessmentReports:
     enabled: false
+    applyLabels: []
   exposedSecretReports:
     enabled: false
+    applyLabels: []
 
 rbac:
   enabled: true

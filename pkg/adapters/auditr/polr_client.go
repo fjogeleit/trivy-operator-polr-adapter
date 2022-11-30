@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	pr "github.com/kyverno/kyverno/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -13,6 +14,7 @@ import (
 
 type PolicyReportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
+	mapper    *mapper
 }
 
 func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ConfigAuditReport) error {
@@ -24,7 +26,7 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 			polr = nil
 		}
 
-		polr, updated := Map(report, polr)
+		polr, updated := p.mapper.Map(report, polr)
 		if polr == nil {
 			return nil
 		} else if updated {
@@ -52,8 +54,9 @@ func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.
 	})
 }
 
-func NewPolicyReportClient(client pr.Wgpolicyk8sV1alpha2Interface) *PolicyReportClient {
+func NewPolicyReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *PolicyReportClient {
 	return &PolicyReportClient{
 		k8sClient: client,
+		mapper:    &mapper{shared.NewLabelMapper(applyLabels)},
 	}
 }

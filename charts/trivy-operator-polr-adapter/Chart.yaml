@@ -3,5 +3,5 @@ name: trivy-operator-polr-adapter
 description: Helm Chart to install the trivy-operator PolicyReport adapter
 
 type: application
-version: "0.1.5"
-appVersion: "0.1.5"
+version: "0.2.0"
+appVersion: "0.2.0"
