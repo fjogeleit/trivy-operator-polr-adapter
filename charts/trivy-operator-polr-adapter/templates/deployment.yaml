@@ -13,6 +13,7 @@ spec:
     metadata:
       {{- with .Values.podAnnotations }}
       annotations:
+        checksum/secret: {{ include (print .Template.BasePath "/config.yaml") . | sha256sum | quote }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
@@ -31,13 +32,6 @@ spec:
           {{- end }}
           image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          args:
-            - --enable-vulnerability={{ .Values.adapters.vulnerabilityReports.enabled }}
-            - --enable-config-audit={{ .Values.adapters.configAuditReports.enabled }}
-            - --enable-kube-bench={{ .Values.adapters.cisKubeBenchReports.enabled }}
-            - --enable-compliance={{ .Values.adapters.complianceReports.enabled }}
-            - --enable-rbac-assessment={{ .Values.adapters.rbacAssessmentReports.enabled }}
-            - --enable-exposed-secrets={{ .Values.adapters.exposedSecretReports.enabled }}
           readinessProbe:
             exec:
               command:
@@ -45,6 +39,16 @@ spec:
               - version
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - name: config-file
+            mountPath: /app/config.yaml
+            subPath: config.yaml
+            readOnly: true
+      volumes:
+      - name: config-file
+        configMap:
+          name: {{ include "trivy-operator-polr-adapter.fullname" . }}-config
+          optional: false
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

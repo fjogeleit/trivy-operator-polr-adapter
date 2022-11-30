@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 	"github.com/spf13/cobra"
@@ -32,6 +33,7 @@ func newRunCMD() *cobra.Command {
 			resolver := config.NewResolver(c, k8sConfig)
 
 			if c.ConfigAuditReports.Enabled {
+				fmt.Println("[INFO] ConfigAuditReports enabled")
 				auditrClient, err := resolver.ConfigAuditReportClient()
 				if err != nil {
 					return err
@@ -44,6 +46,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.VulnerabilityReports.Enabled {
+				fmt.Println("[INFO] VulnerabilityReports enabled")
 				vulnrClient, err := resolver.VulnerabilityReportClient()
 				if err != nil {
 					return err
@@ -56,6 +59,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ComplianceReports.Enabled {
+				fmt.Println("[INFO] ComplianceReports enabled")
 				complianceClient, err := resolver.ComplianceReportClient()
 				if err != nil {
 					return err
@@ -68,6 +72,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.RbacAssessmentReports.Enabled {
+				fmt.Println("[INFO] RbacAssessmentReports enabled")
 				rbacClient, err := resolver.RbacAssessmentReportClient()
 				if err != nil {
 					return err
@@ -90,6 +95,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ExposedSecretReports.Enabled {
+				fmt.Println("[INFO] ExposedSecretReports enabled")
 				secretClient, err := resolver.ExposedSecretReportClient()
 				if err != nil {
 					return err
@@ -102,6 +108,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.CISKubeBenchReports.Enabled {
+				fmt.Println("[INFO] CISKubeBenchReports enabled")
 				kubeBenchClient, err := resolver.CISKubeBenchReportClient()
 				if err != nil {
 					return err

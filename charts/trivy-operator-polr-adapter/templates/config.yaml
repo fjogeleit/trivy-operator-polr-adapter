@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "trivy-operator-polr-adapter.fullname" . }}-config
+  labels:
+    {{- include "trivy-operator-polr-adapter.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    {{- tpl (.Files.Get "files/config.yaml") . | nindent 4 }}

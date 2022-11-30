@@ -3,21 +3,13 @@ package exposedsecret
 import (
 	"crypto/sha1"
 	"fmt"
+	"strings"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-type Severity = int
-
-const (
-	unknown Severity = iota
-	low
-	medium
-	high
-	critical
 )
 
 const (
@@ -38,7 +30,11 @@ var (
 	}
 )
 
-func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+type mapper struct {
+	shared.LabelMapper
+}
+
+func (m *mapper) Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
 	if len(report.Report.Secrets) == 0 {
 		return nil, false
 	}
@@ -46,8 +42,9 @@ func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1
 	var updated bool
 
 	if polr == nil {
-		polr = CreatePolicyReport(report)
+		polr = m.CreatePolicyReport(report)
 	} else {
+		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
 		polr.Summary = CreateSummary(report)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -70,7 +67,7 @@ func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1
 			Message:   check.Match,
 			Resources: []corev1.ObjectReference{res},
 			Result:    v1alpha2.StatusWarn,
-			Severity:  MapServerity(check.Severity),
+			Severity:  shared.MapServerity(check.Severity),
 			Category:  check.Category,
 			Timestamp: *report.CreationTimestamp.ProtoTime(),
 			Source:    trivySource,
@@ -83,22 +80,6 @@ func Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.PolicyReport) (*v1
 	}
 
 	return polr, updated
-}
-
-func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
-	if severity == v1alpha1.SeverityUnknown {
-		return ""
-	} else if severity == v1alpha1.SeverityLow {
-		return v1alpha2.SeverityLow
-	} else if severity == v1alpha1.SeverityMedium {
-		return v1alpha2.SeverityMedium
-	} else if severity == v1alpha1.SeverityHigh {
-		return v1alpha2.SeverityHigh
-	} else if severity == v1alpha1.SeverityCritical {
-		return v1alpha2.SeverityCritical
-	}
-
-	return v1alpha2.SeverityInfo
 }
 
 func CreateObjectReference(report *v1alpha1.ExposedSecretReport) corev1.ObjectReference {
@@ -120,12 +101,12 @@ func CreateObjectReference(report *v1alpha1.ExposedSecretReport) corev1.ObjectRe
 	}
 }
 
-func CreatePolicyReport(report *v1alpha1.ExposedSecretReport) *v1alpha2.PolicyReport {
+func (m *mapper) CreatePolicyReport(report *v1alpha1.ExposedSecretReport) *v1alpha2.PolicyReport {
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
 			Namespace:       report.Namespace,
-			Labels:          reportLabels,
+			Labels:          m.CreateLabels(report.Labels, reportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: CreateSummary(report),
@@ -142,7 +123,7 @@ func CreateSummary(report *v1alpha1.ExposedSecretReport) v1alpha2.PolicyReportSu
 func GeneratePolicyReportName(report *v1alpha1.ExposedSecretReport) string {
 	name := report.Name
 	if len(report.OwnerReferences) == 1 {
-		name = report.OwnerReferences[0].Name
+		name = fmt.Sprintf("%s-%s", strings.ToLower(report.OwnerReferences[0].Kind), report.OwnerReferences[0].Name)
 	}
 
 	return fmt.Sprintf("%s-%s", reportPrefix, name)

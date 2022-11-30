@@ -5,19 +5,10 @@ import (
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-type Severity = int
-
-const (
-	unknown Severity = iota
-	low
-	medium
-	high
-	critical
 )
 
 const (
@@ -38,7 +29,11 @@ var (
 	}
 )
 
-func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+type mapper struct {
+	shared.LabelMapper
+}
+
+func (m *mapper) Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
 	if len(report.Report.Checks) == 0 {
 		return nil, false
 	}
@@ -46,8 +41,9 @@ func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v
 	var updated bool
 
 	if polr == nil {
-		polr = CreatePolicyReport(report)
+		polr = m.CreatePolicyReport(report)
 	} else {
+		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
 		polr.Summary = CreateSummary(report)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -83,7 +79,7 @@ func Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v
 			Properties: props,
 			Resources:  []corev1.ObjectReference{res},
 			Result:     result,
-			Severity:   MapServerity(check.Severity),
+			Severity:   shared.MapServerity(check.Severity),
 			Category:   check.Category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     trivySource,
@@ -101,22 +97,6 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 	}
 
 	return v1alpha2.StatusFail
-}
-
-func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
-	if severity == v1alpha1.SeverityUnknown {
-		return ""
-	} else if severity == v1alpha1.SeverityLow {
-		return v1alpha2.SeverityLow
-	} else if severity == v1alpha1.SeverityMedium {
-		return v1alpha2.SeverityMedium
-	} else if severity == v1alpha1.SeverityHigh {
-		return v1alpha2.SeverityHigh
-	} else if severity == v1alpha1.SeverityCritical {
-		return v1alpha2.SeverityCritical
-	}
-
-	return v1alpha2.SeverityInfo
 }
 
 func CreateObjectReference(report *v1alpha1.RbacAssessmentReport) corev1.ObjectReference {
@@ -138,12 +118,12 @@ func CreateObjectReference(report *v1alpha1.RbacAssessmentReport) corev1.ObjectR
 	}
 }
 
-func CreatePolicyReport(report *v1alpha1.RbacAssessmentReport) *v1alpha2.PolicyReport {
+func (m *mapper) CreatePolicyReport(report *v1alpha1.RbacAssessmentReport) *v1alpha2.PolicyReport {
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
 			Namespace:       report.Namespace,
-			Labels:          reportLabels,
+			Labels:          m.CreateLabels(report.Labels, reportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: CreateSummary(report),

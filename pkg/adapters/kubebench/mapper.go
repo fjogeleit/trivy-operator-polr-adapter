@@ -4,18 +4,9 @@ import (
 	"fmt"
 
 	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-type Severity = int
-
-const (
-	unknown Severity = iota
-	low
-	medium
-	high
-	critical
 )
 
 const (
@@ -37,12 +28,17 @@ var (
 	}
 )
 
-func Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
+type mapper struct {
+	shared.LabelMapper
+}
+
+func (m *mapper) Map(report *v1alpha1.CISKubeBenchReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
 	var updated bool
 
 	if polr == nil {
-		polr = CreatePolicyReport(report)
+		polr = m.CreatePolicyReport(report)
 	} else {
+		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
 		polr.Summary = v1alpha2.PolicyReportSummary{}
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -108,12 +104,12 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 	return v1alpha2.SeverityInfo
 }
 
-func CreatePolicyReport(report *v1alpha1.CISKubeBenchReport) *v1alpha2.ClusterPolicyReport {
+func (m *mapper) CreatePolicyReport(report *v1alpha1.CISKubeBenchReport) *v1alpha2.ClusterPolicyReport {
 	return &v1alpha2.ClusterPolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      GeneratePolicyReportName(report.Name),
 			Namespace: report.Namespace,
-			Labels:    reportLabels,
+			Labels:    m.CreateLabels(report.Labels, reportLabels),
 			OwnerReferences: []v1.OwnerReference{
 				{
 					APIVersion: report.APIVersion,
