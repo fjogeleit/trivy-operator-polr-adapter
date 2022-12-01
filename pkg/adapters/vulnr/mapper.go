@@ -26,7 +26,7 @@ const (
 
 var (
 	reportLabels = map[string]string{
-		"managed-by":                   "trivy-operator-polr-adapter",
+		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
 		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
 		"trivy-operator.source":        "VulnerabilityReport",
 	}
