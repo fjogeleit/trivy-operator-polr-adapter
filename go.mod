@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/aquasecurity/starboard v0.15.11
-	github.com/aquasecurity/trivy-operator v0.7.1
+	github.com/aquasecurity/trivy-operator v0.8.0
 	github.com/kyverno/kyverno v1.8.2
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
@@ -288,7 +288,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/apiextensions-apiserver v0.25.2 // indirect
 	k8s.io/cli-runtime v0.25.2 // indirect
-	k8s.io/component-base v0.25.2 // indirect
+	k8s.io/component-base v0.25.3 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221012153701-172d655c2280 // indirect
 	k8s.io/kubectl v0.25.2 // indirect
