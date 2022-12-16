@@ -19,9 +19,9 @@ type Client struct {
 }
 
 func (e *Client) StartWatching(ctx context.Context) error {
-	return e.client.Watch(&source.Kind{Type: &v1alpha1.ClusterComplianceDetailReport{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
+	return e.client.Watch(&source.Kind{Type: &v1alpha1.ClusterComplianceReport{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
 		CreateFunc: func(event event.CreateEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.ClusterComplianceDetailReport); ok {
+			if report, ok := event.Object.(*v1alpha1.ClusterComplianceReport); ok {
 				err := e.polrClient.GenerateReport(ctx, report)
 				if err != nil {
 					log.Printf("[ERROR] ClusterComplianceDetailReport: Failed to process report %s; %s", report.Name, err)
@@ -31,7 +31,7 @@ func (e *Client) StartWatching(ctx context.Context) error {
 			return true
 		},
 		UpdateFunc: func(event event.UpdateEvent) bool {
-			if report, ok := event.ObjectNew.(*v1alpha1.ClusterComplianceDetailReport); ok {
+			if report, ok := event.ObjectNew.(*v1alpha1.ClusterComplianceReport); ok {
 				err := e.polrClient.GenerateReport(ctx, report)
 				if err != nil {
 					log.Printf("[ERROR] ClusterComplianceDetailReport: Failed to process report %s; %s", report.Name, err)
@@ -41,7 +41,7 @@ func (e *Client) StartWatching(ctx context.Context) error {
 			return true
 		},
 		DeleteFunc: func(event event.DeleteEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.ClusterComplianceDetailReport); ok {
+			if report, ok := event.Object.(*v1alpha1.ClusterComplianceReport); ok {
 				err := e.polrClient.DeleteReport(ctx, report)
 				if err != nil {
 					log.Printf("[ERROR] ClusterComplianceDetailReport: Failed to delete report %s; %s", report.Name, err)
