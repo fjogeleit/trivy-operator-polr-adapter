@@ -1,11 +1,13 @@
 package compliance
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -44,10 +46,10 @@ func (m *mapper) Map(report *v1alpha1.ClusterComplianceReport, polr *v1alpha2.Cl
 
 	for _, result := range report.Status.DetailReport.Results {
 		for _, check := range result.Checks {
-			props := map[string]string{}
+			status := MapResult(check.Success)
 
-			if check.Target != "" {
-				props["target"] = check.Target
+			props := map[string]string{
+				"resultID": generateID(check.Target, result.Name, check.Title, check.Category, status),
 			}
 
 			if check.Remediation != "" {
@@ -60,7 +62,7 @@ func (m *mapper) Map(report *v1alpha1.ClusterComplianceReport, polr *v1alpha2.Cl
 
 			var message string
 
-			if len(check.Messages) == 1 {
+			if len(check.Messages) == 1 && check.Messages[0] != "" {
 				message = check.Messages[0]
 
 				if message != check.Description {
@@ -77,6 +79,12 @@ func (m *mapper) Map(report *v1alpha1.ClusterComplianceReport, polr *v1alpha2.Cl
 				}
 
 				message = check.Description
+			} else {
+				message = check.Description
+			}
+
+			if message == "" {
+				message = result.Description
 			}
 
 			if check.Success {
@@ -85,16 +93,24 @@ func (m *mapper) Map(report *v1alpha1.ClusterComplianceReport, polr *v1alpha2.Cl
 				polr.Summary.Fail++
 			}
 
+			resources := []corev1.ObjectReference{}
+			if check.Target != "" {
+				resources = append(resources, corev1.ObjectReference{
+					Name: check.Target,
+				})
+			}
+
 			polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 				Policy:     fmt.Sprintf("%s %s", result.ID, result.Name),
 				Category:   check.Category,
 				Rule:       check.Title,
 				Message:    message,
-				Result:     MapResult(check.Success),
+				Result:     status,
 				Severity:   shared.MapServerity(check.Severity),
 				Timestamp:  *report.CreationTimestamp.ProtoTime(),
 				Source:     trivySource,
 				Properties: props,
+				Resources:  resources,
 			})
 		}
 	}
@@ -131,4 +147,13 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 	}
 
 	return v1alpha2.StatusFail
+}
+
+func generateID(target, policy, rule, category string, result v1alpha2.PolicyResult) string {
+	id := fmt.Sprintf("%s_%s_%s_%s_%s", target, policy, rule, result, category)
+
+	h := sha1.New()
+	h.Write([]byte(id))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }
