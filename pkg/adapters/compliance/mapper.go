@@ -1,6 +1,7 @@
 package compliance
 
 import (
+	"crypto/sha1"
 	"fmt"
 
 	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
@@ -19,7 +20,7 @@ var (
 	reportLabels = map[string]string{
 		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
 		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ClusterComplianceDetailReport",
+		"trivy-operator.source":        "ClusterComplianceReport",
 	}
 )
 
@@ -27,7 +28,7 @@ type mapper struct {
 	shared.LabelMapper
 }
 
-func (m *mapper) Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
+func (m *mapper) Map(report *v1alpha1.ClusterComplianceReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
 	var updated bool
 
 	if polr == nil {
@@ -39,47 +40,85 @@ func (m *mapper) Map(report *v1alpha1.ClusterComplianceDetailReport, polr *v1alp
 		updated = true
 	}
 
-	for _, check := range report.Report.ControlChecks {
-		for _, result := range check.ScannerCheckResult {
-			for _, details := range result.Details {
-				props := map[string]string{
-					"Description": check.Description,
+	if report.Status.DetailReport == nil {
+		return polr, updated
+	}
+
+	for _, result := range report.Status.DetailReport.Results {
+		for _, check := range result.Checks {
+			status := MapResult(check.Success)
+
+			props := map[string]string{
+				"resultID": generateID(check.Target, result.Name, check.Title, check.Category, status),
+			}
+
+			if check.Remediation != "" {
+				props["remediation"] = check.Remediation
+			}
+
+			if check.ID != "" {
+				props["id"] = check.ID
+			}
+
+			var message string
+
+			if len(check.Messages) == 1 && check.Messages[0] != "" {
+				message = check.Messages[0]
+
+				if message != check.Description {
+					props["description"] = check.Description
+				}
+			} else if len(check.Messages) > 1 {
+				var index int
+				for _, msg := range check.Messages {
+					if msg == "" {
+						continue
+					}
+					index++
+					props[fmt.Sprintf("%d. message", index)] = msg
 				}
 
-				res := []corev1.ObjectReference{}
-				if details.Name != "" {
-					res = append(res, corev1.ObjectReference{
-						Kind:      result.ObjectType,
-						Name:      details.Name,
-						Namespace: details.Namespace,
-					})
-				} else {
-					props["objectType"] = result.ObjectType
-				}
+				message = check.Description
+			} else {
+				message = check.Description
+			}
 
-				if result.ID != "" {
-					props["id"] = result.ID
-				}
+			if message == "" {
+				message = result.Description
+			}
 
-				polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
-					Policy:     check.Name,
-					Rule:       result.ID,
-					Message:    details.Msg,
-					Result:     v1alpha2.StatusFail,
-					Severity:   shared.MapServerity(check.Severity),
-					Timestamp:  *report.Report.UpdateTimestamp.ProtoTime(),
-					Source:     trivySource,
-					Resources:  res,
-					Properties: props,
+			if check.Success {
+				polr.Summary.Pass++
+			} else {
+				polr.Summary.Fail++
+			}
+
+			resources := []corev1.ObjectReference{}
+			if check.Target != "" {
+				resources = append(resources, corev1.ObjectReference{
+					Name: check.Target,
 				})
 			}
+
+			polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
+				Policy:     fmt.Sprintf("%s %s", result.ID, result.Name),
+				Category:   check.Category,
+				Rule:       check.Title,
+				Message:    message,
+				Result:     status,
+				Severity:   shared.MapServerity(check.Severity),
+				Timestamp:  *report.CreationTimestamp.ProtoTime(),
+				Source:     trivySource,
+				Properties: props,
+				Resources:  resources,
+			})
 		}
 	}
 
 	return polr, updated
 }
 
-func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterComplianceDetailReport) *v1alpha2.ClusterPolicyReport {
+func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterComplianceReport) *v1alpha2.ClusterPolicyReport {
 	return &v1alpha2.ClusterPolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:   GeneratePolicyReportName(report.Name),
@@ -93,13 +132,28 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterComplianceDetailRepo
 				},
 			},
 		},
-		Summary: v1alpha2.PolicyReportSummary{
-			Fail: report.Report.Summary.FailCount,
-		},
+		Summary: v1alpha2.PolicyReportSummary{},
 		Results: []v1alpha2.PolicyReportResult{},
 	}
 }
 
 func GeneratePolicyReportName(name string) string {
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
+}
+
+func MapResult(success bool) v1alpha2.PolicyResult {
+	if success {
+		return v1alpha2.StatusPass
+	}
+
+	return v1alpha2.StatusFail
+}
+
+func generateID(target, policy, rule, category string, result v1alpha2.PolicyResult) string {
+	id := fmt.Sprintf("%s_%s_%s_%s_%s", target, policy, rule, result, category)
+
+	h := sha1.New()
+	h.Write([]byte(id))
+
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

@@ -17,7 +17,7 @@ type PolicyReportClient struct {
 	mapper    *mapper
 }
 
-func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterComplianceDetailReport) error {
+func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterComplianceReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		polr, err := p.k8sClient.ClusterPolicyReports().Get(ctx, GeneratePolicyReportName(report.Name), v1.GetOptions{})
 		if !errors.IsNotFound(err) && err != nil {
@@ -41,7 +41,7 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 	})
 }
 
-func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterComplianceDetailReport) error {
+func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterComplianceReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
 		err := p.k8sClient.ClusterPolicyReports().Delete(ctx, GeneratePolicyReportName(report.Name), v1.DeleteOptions{})
 		if err != nil && !errors.IsNotFound(err) {

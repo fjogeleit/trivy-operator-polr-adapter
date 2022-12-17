@@ -1,3 +1,7 @@
+# 0.3.0
+
+* Add support for ClusterComplianceReport in `detailed` / `all` mode.
+
 # 0.1.4
 
 * Dependency Updates
