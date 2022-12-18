@@ -48,6 +48,9 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("enable-exposed-secrets"); flag != nil {
 		v.BindPFlag("exposedSecretReports.enabled", flag)
 	}
+	if flag := cmd.Flags().Lookup("enable-infra-assessment"); flag != nil {
+		v.BindPFlag("infraAssessmentReports.enabled", flag)
+	}
 
 	c := &config.Config{}
 
