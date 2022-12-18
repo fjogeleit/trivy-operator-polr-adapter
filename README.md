@@ -25,27 +25,29 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 ## Configuration
 
 
-| Argument                | Helm Value                             | Description                                                           | Default Helm Value |
-|-------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
-|--kubeconfig             |                                        | Path to the used kubeconfig, mainly for local development             |                    |
-|--enable-vulnerability   |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
-|--enable-config-audit    |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |
-|--enable-rbac-assessment |`adapters.rbacAssessmentReports.enabled`| Enables the transformation of RbacAssessmentReport into PolicyReports and<br>ClusterRbacAssessmentReport into ClusterPolicyReports  | `false`             |
-|--enable-exposed-secrets |`adapters.exposedSecretReports.enabled` | Enables the transformation of ExposedSecretReport into PolicyReports   | `false`             |
-|--enable-compliance |`adapters.complianceReports.enabled` | Enables the transformation of ClusterComplianceReport into ClusterPolicyReports| `false`             |
-|--enable-kube-bench |`adapters.cisKubeBenchReports.enabled` | Enables the transformation of CISKubeBenchReports into ClusterPolicyReports<br>(Not available in newer version of Trivy Operator) | `false`             |
+| Argument                  | Helm Value                             | Description                                                           | Default Helm Value |
+|---------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
+| --kubeconfig              |                                        | Path to the used kubeconfig, mainly for local development             |                    |
+| --enable-vulnerability    |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
+| --enable-config-audit     |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |
+| --enable-rbac-assessment  |`adapters.rbacAssessmentReports.enabled`| Enables the transformation of RbacAssessmentReport into PolicyReports and<br>ClusterRbacAssessmentReport into ClusterPolicyReports  | `false`             |
+| --enable-exposed-secrets  |`adapters.exposedSecretReports.enabled` | Enables the transformation of ExposedSecretReport into PolicyReports   | `false`             |
+| --enable-compliance       |`adapters.complianceReports.enabled` | Enables the transformation of ClusterComplianceReport into ClusterPolicyReports| `false`             |
+| --enable-infra-assessment |`adapters.infraAssessmentReports.enabled` | Enables the transformation of InfraAssessmentReports into PolicyReports | `false`             |
+| --enable-kube-bench       |`adapters.cisKubeBenchReports.enabled` | Enables the transformation of CISKubeBenchReports into ClusterPolicyReports<br>(Not available in newer version of Trivy Operator) | `false`             |
 
 ## Available Sources
 
 Sources of the PolicyReportResults can be used to filter different Reports from metrics, views or notifications in Policy Reporter
 
-| Source               | TrivyReport Report                                 |
-|----------------------|----------------------------------------------------|
-| Trivy ConfigAudit    | ConfigAuditReport                                  |
-| Trivy Vulnerability  | VulnerabilityReport                                |
-| Trivy ExposedSecrets | ExposedSecretReport                                |
-| Trivy RbacAssessment | ClusterRbacAssessmentReport / RbacAssessmentReport |
-| Trivy Compliance     | ClusterComplianceReport                            |
+| Source                 | TrivyReport Report                                 |
+|------------------------|----------------------------------------------------|
+| Trivy ConfigAudit      | ConfigAuditReport                                  |
+| Trivy Vulnerability    | VulnerabilityReport                                |
+| Trivy ExposedSecrets   | ExposedSecretReport                                |
+| Trivy RbacAssessment   | ClusterRbacAssessmentReport / RbacAssessmentReport |
+| Trivy Compliance       | ClusterComplianceReport                            |
+| Trivy InfraAssessment  | InfraAssessmentReports                             |
 
 ## Integreted Adapters
 ### VulnerabilityReports
