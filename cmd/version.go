@@ -6,12 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func newVersionCMD() *cobra.Command {
+func newVersionCMD(version string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "CLI Version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("v0.3.0")
+			fmt.Printf("Version: %s\n", version)
 		},
 	}
 }

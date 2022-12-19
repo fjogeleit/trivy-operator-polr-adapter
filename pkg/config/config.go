@@ -36,13 +36,19 @@ type ExposedSecretReports struct {
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
+type InfraAssessmentReports struct {
+	Enabled     bool     `mapstructure:"enabled"`
+	ApplyLabels []string `mapstructure:"applyLabels"`
+}
+
 // Config of the Tracee Adapter
 type Config struct {
-	Kubeconfig            string                `mapstructure:"kubeconfig"`
-	VulnerabilityReports  VulnerabilityReports  `mapstructure:"vulnerabilityReports"`
-	ConfigAuditReports    ConfigAuditReports    `mapstructure:"configAuditReports"`
-	CISKubeBenchReports   CISKubeBenchReports   `mapstructure:"cisKubeBenchReports"`
-	ComplianceReports     ComplianceReports     `mapstructure:"complianceReports"`
-	RbacAssessmentReports RbacAssessmentReports `mapstructure:"rbacAssessmentReports"`
-	ExposedSecretReports  ExposedSecretReports  `mapstructure:"exposedSecretReports"`
+	Kubeconfig             string                 `mapstructure:"kubeconfig"`
+	VulnerabilityReports   VulnerabilityReports   `mapstructure:"vulnerabilityReports"`
+	ConfigAuditReports     ConfigAuditReports     `mapstructure:"configAuditReports"`
+	CISKubeBenchReports    CISKubeBenchReports    `mapstructure:"cisKubeBenchReports"`
+	ComplianceReports      ComplianceReports      `mapstructure:"complianceReports"`
+	RbacAssessmentReports  RbacAssessmentReports  `mapstructure:"rbacAssessmentReports"`
+	ExposedSecretReports   ExposedSecretReports   `mapstructure:"exposedSecretReports"`
+	InfraAssessmentReports InfraAssessmentReports `mapstructure:"infraAssessmentReports"`
 }

@@ -120,6 +120,19 @@ func newRunCMD() *cobra.Command {
 				}
 			}
 
+			if c.InfraAssessmentReports.Enabled {
+				fmt.Println("[INFO] InfraAssessmentReportClient enabled")
+				infraClient, err := resolver.InfraAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = infraClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
 			mgr, err := resolver.Manager()
 			if err != nil {
 				return err
@@ -136,9 +149,10 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-vulnerability", false, "Enable the transformation of VulnerabilityReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-config-audit", false, "Enable the transformation of ConfigAuditReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-kube-bench", false, "Enable the transformation of CISKubeBenchReports into ClusterPolicyReports")
-	cmd.PersistentFlags().Bool("enable-compliance", false, "Enable the transformation of ClusterComplianceDetailReport into ClusterPolicyReports")
-	cmd.PersistentFlags().Bool("enable-rbac-assessment", false, "Enable the transformation of RbacAssessmentReport into PolicyReports")
-	cmd.PersistentFlags().Bool("enable-exposed-secrets", false, "Enable the transformation of ExposedSecretReport into PolicyReports")
+	cmd.PersistentFlags().Bool("enable-compliance", false, "Enable the transformation of ClusterComplianceDetailReports into ClusterPolicyReports")
+	cmd.PersistentFlags().Bool("enable-rbac-assessment", false, "Enable the transformation of RbacAssessmentReports into PolicyReports")
+	cmd.PersistentFlags().Bool("enable-exposed-secrets", false, "Enable the transformation of ExposedSecretReports into PolicyReports")
+	cmd.PersistentFlags().Bool("enable-infra-assessment", false, "Enable the transformation of InfraAssessmentReports into PolicyReports")
 
 	flag.Parse()
 

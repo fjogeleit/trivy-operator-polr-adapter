@@ -7,6 +7,7 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/infra"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/kubebench"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/rbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
@@ -53,6 +54,7 @@ type Resolver struct {
 	rbacClient        *rbac.Client
 	clusterrbacClient *clusterrbac.Client
 	secretClient      *exposedsecret.Client
+	infraClient       *infra.Client
 	kubeBenchClient   *kubebench.Client
 	mgr               manager.Manager
 }
@@ -302,6 +304,36 @@ func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
 	r.kubeBenchClient = kubebench.NewClient(contr, polrClient, r.config.CISKubeBenchReports.ApplyLabels)
 
 	return r.kubeBenchClient, nil
+}
+
+// InfraAssessmentReportClient resolver method
+func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
+	if r.infraClient != nil {
+		return r.infraClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("infraassessment", mgr, controller.Options{
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.infraClient = infra.NewClient(contr, polrClient, r.config.ExposedSecretReports.ApplyLabels)
+
+	return r.infraClient, nil
 }
 
 // NewResolver constructor function

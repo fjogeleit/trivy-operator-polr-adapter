@@ -14,11 +14,6 @@ import (
 const (
 	resultSource = "Trivy ConfigAudit"
 	reportPrefix = "trivy-audit-polr"
-
-	containerLabel = "trivy-operator.container.name"
-	kindLabel      = "trivy-operator.resource.kind"
-	nameLabel      = "trivy-operator.resource.name"
-	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
 var (
@@ -49,7 +44,7 @@ func (m *mapper) Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyRe
 		updated = true
 	}
 
-	res := CreateObjectReference(report)
+	res := shared.CreateObjectReference(report.Namespace, report.OwnerReferences, report.Labels)
 
 	for _, check := range report.Report.Checks {
 		props := map[string]string{}
@@ -103,25 +98,6 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 	}
 
 	return v1alpha2.StatusFail
-}
-
-func CreateObjectReference(report *v1alpha1.ConfigAuditReport) corev1.ObjectReference {
-	if len(report.OwnerReferences) == 1 {
-		ref := report.OwnerReferences[0].DeepCopy()
-
-		return corev1.ObjectReference{
-			Namespace:  report.Namespace,
-			APIVersion: ref.APIVersion,
-			Kind:       ref.Kind,
-			Name:       ref.Name,
-			UID:        ref.UID,
-		}
-	}
-	return corev1.ObjectReference{
-		Namespace: report.Labels[namespaceLabel],
-		Kind:      report.Labels[kindLabel],
-		Name:      report.Labels[nameLabel],
-	}
 }
 
 func (m *mapper) CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyReport {

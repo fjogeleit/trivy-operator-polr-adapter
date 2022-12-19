@@ -34,3 +34,9 @@ exposedSecretReports:
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+infraAssessmentReports:
+  enabled: {{ .Values.adapters.infraAssessmentReports.enabled }}
+  {{- with .Values.adapters.infraAssessmentReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
