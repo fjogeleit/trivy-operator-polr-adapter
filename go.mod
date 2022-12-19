@@ -1,6 +1,6 @@
 module github.com/fjogeleit/trivy-operator-polr-adapter
 
-go 1.18
+go 1.19
 
 require (
 	github.com/aquasecurity/starboard v0.15.11

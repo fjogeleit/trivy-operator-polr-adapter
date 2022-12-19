@@ -24,7 +24,6 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 
 ## Configuration
 
-
 | Argument                  | Helm Value                             | Description                                                           | Default Helm Value |
 |---------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
 | --kubeconfig              |                                        | Path to the used kubeconfig, mainly for local development             |                    |
@@ -228,8 +227,6 @@ Maps ClusterRbacAssessmentReport into PolicyReports.
 apiVersion: wgpolicyk8s.io/v1alpha2
 kind: ClusterPolicyReport
 metadata:
-  creationTimestamp: "2022-08-22T18:15:30Z"
-  generation: 2
   labels:
     app.kubernetes.io/created-by: trivy-operator-polr-adapter
     trivy-operator.source: ClusterRbacAssessmentReport
@@ -287,6 +284,117 @@ summary:
   skip: 0
   warn: 0
 
+```
+
+### ClusterComplianceReport
+
+Maps ClusterComplianceReports in detailed (all) mode into ClusterPolicyReports
+
+```yaml
+apiVersion: wgpolicyk8s.io/v1alpha2
+kind: ClusterPolicyReport
+metadata:
+  labels:
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
+    app.kubernetes.io/managed-by: trivy-operator-polr-adapter
+    trivy-operator.source: ClusterComplianceReport
+  name: trivy-compliance-cpolr-nsa
+  ownerReferences:
+  - apiVersion: aquasecurity.github.io/v1alpha1
+    kind: ClusterComplianceReport
+    name: nsa
+    uid: 9e1b4826-f357-407c-ac41-359a6dd41037
+results:
+- category: Kubernetes Security Check
+  message: '''runAsNonRoot'' forces the running image to run as a non-root user to
+    ensure least privileges.'
+  policy: 1.0 Non-root containers
+  properties:
+    id: AVD-KSV-0012
+    resultID: 6ee90a6c312e2a96418600e0daad1a2afb8c15e2
+  resources:
+  - name: kube-system/pod-kube-apiserver-minikube
+  result: fail
+  rule: Runs as root user
+  severity: medium
+  source: Trivy Compliance
+  timestamp:
+    nanos: 0
+    seconds: 1671442549
+- category: Kubernetes Security Check
+  message: An immutable root file system prevents applications from writing to their
+    local disk. This can limit intrusions, as attackers will not be able to tamper
+    with the file system or write foreign executables to disk.
+  policy: 1.1 Immutable container file systems
+  properties:
+    id: AVD-KSV-0014
+    resultID: 528a263d5710cde2c9d9db0964b393b30e92a3a9
+  resources:
+  - name: kube-system/pod-etcd-minikube
+  result: fail
+  rule: Root file system is not read-only
+  severity: low
+  source: Trivy Compliance
+  timestamp:
+    nanos: 0
+    seconds: 1671442549
+summary:
+  error: 0
+  fail: 2
+  pass: 0
+  skip: 0
+  warn: 0
+```
+
+### InfraAssessmentReport
+
+Maps InfraAssessmentReports into PolicyReports.
+
+```yaml
+apiVersion: wgpolicyk8s.io/v1alpha2
+kind: PolicyReport
+metadata:
+  labels:
+    app.kubernetes.io/created-by: trivy-operator-polr-adapter
+    app.kubernetes.io/managed-by: trivy-operator-polr-adapter
+    trivy-operator.source: InfraAssessmentReport
+  name: trivy-infra-polr-pod-kube-apiserver-minikube
+  namespace: kube-system
+  ownerReferences:
+  - apiVersion: aquasecurity.github.io/v1alpha1
+    kind: InfraAssessmentReport
+    name: pod-kube-apiserver-minikube
+    uid: 37266479-d784-4ed9-a4c6-9dda5dff488b
+results:
+- category: Kubernetes Security Check
+  message: Ensure that the admission control plugin SecurityContextDeny is set if
+    PodSecurityPolicy is not used
+  policy: KCV0013
+  properties:
+    description: The SecurityContextDeny admission controller can be used to deny
+      pods which make use of some SecurityContext fields which could allow for privilege
+      escalation in the cluster. This should be used where PodSecurityPolicy is not
+      in place within the cluster.
+  resources:
+  - apiVersion: v1
+    kind: Pod
+    name: kube-apiserver-minikube
+    namespace: kube-system
+    uid: 5a50c600-4dff-42fd-a0c2-6734bb07ab0e
+  result: fail
+  rule: Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy
+    is not used
+  severity: low
+  source: Trivy InfraAssessment
+  timestamp:
+    nanos: 0
+    seconds: 1671442613
+summary:
+  error: 0
+  fail: 1
+  pass: 0
+  skip: 0
+  warn: 0
 ```
 
 ## Policy Reporter UI Screenshots
