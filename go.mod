@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/aquasecurity/starboard v0.15.11
 	github.com/aquasecurity/trivy-operator v0.9.1
-	github.com/kyverno/kyverno v1.8.4
+	github.com/kyverno/kyverno v1.8.5
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.14.0
 	golang.org/x/net v0.4.0
