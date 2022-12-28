@@ -17,6 +17,7 @@ rules:
   - rbacassessmentreports
   - clusterrbacassessmentreports
   - exposedsecretreports
+  - infraassessmentreports
   verbs:
   - get
   - list
