@@ -317,8 +317,8 @@ github.com/aquasecurity/trivy v0.35.0 h1:qtSn7MSLjRRmUOTI7UbGOlT3NVk/Zcv2/m19kD4
 github.com/aquasecurity/trivy v0.35.0/go.mod h1:gwkdeoZUwAxDrwBVD6EmCDHPVo+nkMxeudy06HiWkcA=
 github.com/aquasecurity/trivy-db v0.0.0-20220904090734-9dd4c7776a52 h1:mAMQbKPIPWG3YIzwFq2UgfnnZ5miBJEFJBR6x3FAjZ4=
 github.com/aquasecurity/trivy-db v0.0.0-20220904090734-9dd4c7776a52/go.mod h1:/nULgnDeq/JMPMVwE1dmf4kWlYn++7VrM3O2naj4BHA=
-github.com/aquasecurity/trivy-operator v0.9.0 h1:dDPQ3pZU8hsknA7eb8Y3Uw71R4CIz+h9zf6rVrRN72g=
-github.com/aquasecurity/trivy-operator v0.9.0/go.mod h1:O/7vPGGshO3hYz9h4tOuOeDhdYbqA04u/sq1w0QfEVo=
+github.com/aquasecurity/trivy-operator v0.9.1 h1:6iNU6P6wrJAdVgPBR1p7k8muHgDuDjOvGNsuHf6sSIE=
+github.com/aquasecurity/trivy-operator v0.9.1/go.mod h1:lESHLC+Kmvc5kK4PammylObRu+aLoZ6hq4CGpzVt+EQ=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0 h1:jfIu9sQUG6Ig+0+Ap1h4unLjW6YQJpKZVmUzxsD4E/Q=
 github.com/arbovm/levenshtein v0.0.0-20160628152529-48b4e1c0c4d0/go.mod h1:t2tdKJDJF9BV14lnkjHmOQgcvEKgtqs5a1N3LNdJhGE=
 github.com/armon/circbuf v0.0.0-20150827004946-bbbad097214e/go.mod h1:3U/XgcO3hCbHZ8TKRvWD2dDTCfh9M9ya+I9JpbB7O8o=
@@ -1387,8 +1387,8 @@ github.com/kunwardeep/paralleltest v1.0.2/go.mod h1:ZPqNm1fVHPllh5LPVujzbVz1JN2G
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
 github.com/kyoh86/exportloopref v0.1.8/go.mod h1:1tUcJeiioIs7VWe5gcOObrux3lb66+sBqGZrRkMwPgg=
-github.com/kyverno/kyverno v1.8.4 h1:4l0kgo6KuBmvuqQZLLRA+ta5N+01C1DPJX27VBe2kNQ=
-github.com/kyverno/kyverno v1.8.4/go.mod h1:6VWKkzmbUfqT2YcijHTih6PMwke13/HngtBgu+ZbZjU=
+github.com/kyverno/kyverno v1.8.5 h1:5eSyH6droO0NesMs1+BtLH2LacpEAj5Xxl6ZhvP+j08=
+github.com/kyverno/kyverno v1.8.5/go.mod h1:6VWKkzmbUfqT2YcijHTih6PMwke13/HngtBgu+ZbZjU=
 github.com/ldez/gomoddirectives v0.2.1/go.mod h1:sGicqkRgBOg//JfpXwkB9Hj0X5RyJ7mlACM5B9f6Me4=
 github.com/ldez/tagliatelle v0.2.0/go.mod h1:8s6WJQwEYHbKZDsp/LjArytKOG8qaMrKQQ3mFukHs88=
 github.com/leodido/go-urn v1.1.0/go.mod h1:+cyI34gQWZcE1eQU7NVgKkkzdXDQHr1dBMtdAPozLkw=
@@ -3199,8 +3199,8 @@ sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.9/go.mod h1:dzAXnQb
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.14/go.mod h1:LEScyzhFmoF5pso/YSeBstl57mOzx9xlU9n85RGrDQg=
 sigs.k8s.io/controller-runtime v0.8.2/go.mod h1:U/l+DUopBc1ecfRZ5aviA9JDmGFQKvLf5YkZNx2e0sU=
 sigs.k8s.io/controller-runtime v0.8.3/go.mod h1:U/l+DUopBc1ecfRZ5aviA9JDmGFQKvLf5YkZNx2e0sU=
-sigs.k8s.io/controller-runtime v0.14.0 h1:ju2xsov5Ara6FoQuddg+az+rAxsUsTYn2IYyEKCTyDc=
-sigs.k8s.io/controller-runtime v0.14.0/go.mod h1:GaRkrY8a7UZF0kqFFbUKG7n9ICiTY5T55P1RiE3UZlU=
+sigs.k8s.io/controller-runtime v0.14.1 h1:vThDes9pzg0Y+UbCPY3Wj34CGIYPgdmspPm2GIpxpzM=
+sigs.k8s.io/controller-runtime v0.14.1/go.mod h1:GaRkrY8a7UZF0kqFFbUKG7n9ICiTY5T55P1RiE3UZlU=
 sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd h1:EDPBXCAspyGV4jQlpZSudPeMmr1bNJefnuqLsRAsHZo=
 sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd/go.mod h1:B8JuhiUyNFVKdsE8h686QcCxMaH6HrOAZj4vswFpcB0=
 sigs.k8s.io/kustomize/api v0.12.1 h1:7YM7gW3kYBwtKvoY216ZzY+8hM+lV53LUayghNRJ0vM=
