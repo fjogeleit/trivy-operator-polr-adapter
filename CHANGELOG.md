@@ -1,3 +1,11 @@
+# 0.3.2
+
+* Fixed RBAC permssions for InfraAssementReport
+
+# 0.3.1
+
+* Add support for InfraAssementReport
+
 # 0.3.0
 
 * Add support for ClusterComplianceReport in `detailed` / `all` mode.
