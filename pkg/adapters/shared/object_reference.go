@@ -11,11 +11,11 @@ const (
 	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
-func CreateObjectReference(namespace string, owners []v1.OwnerReference, labels map[string]string) corev1.ObjectReference {
+func CreateObjectReference(namespace string, owners []v1.OwnerReference, labels map[string]string) *corev1.ObjectReference {
 	if len(owners) == 1 {
 		ref := owners[0].DeepCopy()
 
-		return corev1.ObjectReference{
+		return &corev1.ObjectReference{
 			Namespace:  namespace,
 			APIVersion: ref.APIVersion,
 			Kind:       ref.Kind,
@@ -23,7 +23,7 @@ func CreateObjectReference(namespace string, owners []v1.OwnerReference, labels 
 			UID:        ref.UID,
 		}
 	}
-	return corev1.ObjectReference{
+	return &corev1.ObjectReference{
 		Namespace: labels[namespaceLabel],
 		Kind:      labels[kindLabel],
 		Name:      labels[nameLabel],

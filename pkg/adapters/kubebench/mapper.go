@@ -3,10 +3,11 @@ package kubebench
 import (
 	"fmt"
 
-	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -21,13 +22,11 @@ const (
 	reportPrefix = "cis-kube-bench-cpolr"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "CISKubeBenchReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "CISKubeBenchReport",
+}
 
 type mapper struct {
 	shared.LabelMapper
@@ -90,7 +89,7 @@ func MapResult(status string) v1alpha2.PolicyResult {
 }
 
 func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
-	if severity == v1alpha1.SeverityUnknown || severity == v1alpha1.SeverityNone {
+	if severity == v1alpha1.SeverityUnknown {
 		return ""
 	} else if severity == v1alpha1.SeverityLow {
 		return v1alpha2.SeverityLow

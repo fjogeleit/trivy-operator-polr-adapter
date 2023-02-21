@@ -1,8 +1,8 @@
 package shared
 
 import (
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {

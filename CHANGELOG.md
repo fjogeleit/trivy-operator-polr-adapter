@@ -1,3 +1,11 @@
+# 0.4.0
+
+* Add TrivyOperator APIs to the project to reduce not needed dependencies
+* Add PolicyReport CRD API and Client code to remove kyverno dependencies
+* Support configure `CacheSyncTimeout` for the different clients
+* Use `scope` instead of repeating the related `resource` in each result
+    * If you use PolicyReporter, it requires AppVerion >= v2.13.0 to process the scope properly
+
 # 0.3.2
 
 * Fixed RBAC permssions for InfraAssementReport

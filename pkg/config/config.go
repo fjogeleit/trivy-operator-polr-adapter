@@ -3,41 +3,48 @@ package config
 // VulnerabilityReports configuration
 type VulnerabilityReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 // ConfigAuditReports configuration
 type ConfigAuditReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 // CISKubeBenchReports configuration
 type CISKubeBenchReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 // ComplianceReports configuration
 type ComplianceReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 // RbacAssessmentReports configuration
 type RbacAssessmentReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 // ExposedSecretReports configuration
 type ExposedSecretReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 
 type InfraAssessmentReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
+	Timeout     int      `mapstructure:"timeout"`
 	ApplyLabels []string `mapstructure:"applyLabels"`
 }
 

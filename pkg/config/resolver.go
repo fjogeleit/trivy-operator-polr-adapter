@@ -2,6 +2,13 @@ package config
 
 import (
 	"context"
+	"time"
+
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
@@ -11,36 +18,8 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/kubebench"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/rbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
-
-	"github.com/aquasecurity/starboard/pkg/apis/aquasecurity"
-	starboard "github.com/aquasecurity/starboard/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/kyverno/kyverno/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
-	meta "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/rest"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-)
-
-var (
-	StarboardGroupVersion = schema.GroupVersion{
-		Group:   aquasecurity.GroupName,
-		Version: starboard.CISKubeBenchReportCRVersion,
-	}
-
-	StarboardSchemaBuilder = runtime.NewSchemeBuilder(func(s *runtime.Scheme) error {
-		s.AddKnownTypes(
-			StarboardGroupVersion,
-			&starboard.CISKubeBenchReport{},
-			&starboard.CISKubeBenchReportList{},
-		)
-
-		meta.AddToGroupVersion(s, StarboardGroupVersion)
-		return nil
-	})
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 )
 
 // Resolver manages dependencies
@@ -81,7 +60,6 @@ func (r *Resolver) Manager() (manager.Manager, error) {
 	schema := runtime.NewScheme()
 
 	v1alpha1.AddToScheme(schema)
-	StarboardSchemaBuilder.AddToScheme(schema)
 
 	mgr, err := manager.New(r.k8sConfig, manager.Options{
 		Scheme:             schema,
@@ -113,6 +91,7 @@ func (r *Resolver) ConfigAuditReportClient() (*auditr.Client, error) {
 	}
 
 	contr, err := controller.New("configaudit", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.ConfigAuditReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -143,6 +122,7 @@ func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
 	}
 
 	contr, err := controller.New("vulnerability", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.VulnerabilityReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -173,6 +153,7 @@ func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 	}
 
 	contr, err := controller.New("compliance", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.ComplianceReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -203,6 +184,7 @@ func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
 	}
 
 	contr, err := controller.New("rbacassessment", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.RbacAssessmentReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -233,6 +215,7 @@ func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, err
 	}
 
 	contr, err := controller.New("clusterrbacassessment", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.RbacAssessmentReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -263,6 +246,7 @@ func (r *Resolver) ExposedSecretReportClient() (*exposedsecret.Client, error) {
 	}
 
 	contr, err := controller.New("exposedsecret", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.ExposedSecretReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -293,6 +277,7 @@ func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
 	}
 
 	contr, err := controller.New("ciskubebench", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.CISKubeBenchReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),
@@ -323,6 +308,7 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 	}
 
 	contr, err := controller.New("infraassessment", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.InfraAssessmentReports.Timeout) * time.Minute,
 		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
 			return reconcile.Result{}, nil
 		}),

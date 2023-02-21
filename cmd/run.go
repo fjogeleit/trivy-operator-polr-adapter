@@ -4,10 +4,11 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 )
 
 func newRunCMD() *cobra.Command {

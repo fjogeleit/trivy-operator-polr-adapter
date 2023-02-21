@@ -4,11 +4,12 @@ import (
 	"crypto/sha1"
 	"fmt"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -21,13 +22,11 @@ const (
 	nameAnnotation = "trivy-operator.resource.name"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ClusterRbacAssessmentReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "ClusterRbacAssessmentReport",
+}
 
 type mapper struct {
 	shared.LabelMapper
@@ -49,14 +48,14 @@ func (m *mapper) Map(report *v1alpha1.ClusterRbacAssessmentReport, polr *v1alpha
 		updated = true
 	}
 
-	res := CreateObjectReference(report)
+	polr.Scope = CreateObjectReference(report)
 
 	for _, check := range report.Report.Checks {
 
 		result := MapResult(check.Success)
 
 		props := map[string]string{
-			"resultID": generateID(string(res.UID), res.Name, check.Title, check.ID, string(result)),
+			"resultID": generateID(string(polr.Scope.UID), polr.Scope.Name, check.Title, check.ID, string(result)),
 		}
 
 		var index int
@@ -73,7 +72,6 @@ func (m *mapper) Map(report *v1alpha1.ClusterRbacAssessmentReport, polr *v1alpha
 			Rule:       check.ID,
 			Message:    check.Description,
 			Properties: props,
-			Resources:  []corev1.ObjectReference{res},
 			Result:     result,
 			Severity:   shared.MapServerity(check.Severity),
 			Category:   check.Category,
@@ -93,18 +91,18 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 	return v1alpha2.StatusFail
 }
 
-func CreateObjectReference(report *v1alpha1.ClusterRbacAssessmentReport) corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.ClusterRbacAssessmentReport) *corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
 		ref := report.OwnerReferences[0]
 
-		return corev1.ObjectReference{
+		return &corev1.ObjectReference{
 			APIVersion: ref.APIVersion,
 			Kind:       ref.Kind,
 			Name:       ref.Name,
 			UID:        ref.UID,
 		}
 	}
-	return corev1.ObjectReference{
+	return &corev1.ObjectReference{
 		Kind: report.Labels[kindLabel],
 		Name: report.Annotations[nameAnnotation],
 	}
