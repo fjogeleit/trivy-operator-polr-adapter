@@ -5,7 +5,7 @@ Maps Trivy Operator CRDs into the unified PolicyReport and ClusterPolicyReport f
 ## Pre Requirements
 
 1. [Trivy Operator](https://github.com/aquasecurity/trivy-operator) with the related CRDs is installed and running
-2. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1alpha2) are installed in your Cluster
+2. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1beta1) are installed in your Cluster
 
 ## Installation via Helm
 
