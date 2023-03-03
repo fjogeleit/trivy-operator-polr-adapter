@@ -4,11 +4,11 @@ import (
 	"crypto/sha1"
 	"fmt"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -16,13 +16,11 @@ const (
 	reportPrefix = "trivy-infra-polr"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "InfraAssessmentReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "InfraAssessmentReport",
+}
 
 type mapper struct {
 	shared.LabelMapper
@@ -39,6 +37,8 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
 	}
+
+	polr.Scope = shared.CreateObjectReference(report.Namespace, report.OwnerReferences, report.Labels)
 
 	for _, check := range report.Report.Checks {
 		props := map[string]string{}
@@ -86,9 +86,6 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
 			Source:     trivySource,
 			Properties: props,
-			Resources: []corev1.ObjectReference{
-				shared.CreateObjectReference(report.Namespace, report.OwnerReferences, report.Labels),
-			},
 		})
 	}
 

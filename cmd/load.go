@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 )
 
 func loadConfig(cmd *cobra.Command) (*config.Config, error) {

@@ -4,3 +4,4 @@ build
 /values.yaml
 coverage.out
 heap*
+.vscode

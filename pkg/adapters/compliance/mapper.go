@@ -4,11 +4,12 @@ import (
 	"crypto/sha1"
 	"fmt"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -16,13 +17,11 @@ const (
 	reportPrefix = "trivy-compliance-cpolr"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ClusterComplianceReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "ClusterComplianceReport",
+}
 
 type mapper struct {
 	shared.LabelMapper

@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -23,13 +24,11 @@ const (
 	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ExposedSecretReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "ExposedSecretReport",
+}
 
 type mapper struct {
 	shared.LabelMapper
@@ -51,12 +50,10 @@ func (m *mapper) Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.Policy
 		updated = true
 	}
 
-	res := CreateObjectReference(report)
-
 	duplCache := map[string]bool{}
 
 	for _, check := range report.Report.Secrets {
-		id := generateID(string(res.UID), res.Name, check.Title, check.RuleID, check.Match, check.Category)
+		id := generateID(string(polr.Scope.UID), polr.Scope.Name, check.Title, check.RuleID, check.Match, check.Category)
 
 		if duplCache[id] {
 			continue
@@ -66,7 +63,6 @@ func (m *mapper) Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.Policy
 			Policy:    check.Title,
 			Rule:      check.RuleID,
 			Message:   check.Match,
-			Resources: []corev1.ObjectReference{res},
 			Result:    v1alpha2.StatusWarn,
 			Severity:  shared.MapServerity(check.Severity),
 			Category:  check.Category,
@@ -83,11 +79,11 @@ func (m *mapper) Map(report *v1alpha1.ExposedSecretReport, polr *v1alpha2.Policy
 	return polr, updated
 }
 
-func CreateObjectReference(report *v1alpha1.ExposedSecretReport) corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.ExposedSecretReport) *corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
 		ref := report.OwnerReferences[0]
 
-		return corev1.ObjectReference{
+		return &corev1.ObjectReference{
 			Namespace:  report.Namespace,
 			APIVersion: ref.APIVersion,
 			Kind:       ref.Kind,
@@ -95,7 +91,7 @@ func CreateObjectReference(report *v1alpha1.ExposedSecretReport) corev1.ObjectRe
 			UID:        ref.UID,
 		}
 	}
-	return corev1.ObjectReference{
+	return &corev1.ObjectReference{
 		Namespace: report.Labels[namespaceLabel],
 		Kind:      report.Labels[kindLabel],
 		Name:      report.Annotations[nameAnnotation],
@@ -112,6 +108,7 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.ExposedSecretReport) *v1alp
 		},
 		Summary: CreateSummary(report),
 		Results: []v1alpha2.PolicyReportResult{},
+		Scope:   CreateObjectReference(report),
 	}
 }
 

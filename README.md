@@ -48,6 +48,18 @@ Sources of the PolicyReportResults can be used to filter different Reports from 
 | Trivy Compliance       | ClusterComplianceReport                            |
 | Trivy InfraAssessment  | InfraAssessmentReports                             |
 
+## Support Matrix
+
+| Report CRD              | Trivy Operator Polr Adapter | Trivy Opervator                    |
+|-------------------------|-----------------------------|------------------------------------|
+| CISKubeBenchReport      | `>= 0.0.1`                  | `0.0.1` (removed in newer versions)|
+| VulnerabilityReport     | `>= 0.0.1`                  | `>= 0.0.1`                         |
+| ConfigAuditReport       | `>= 0.0.1`                  | `>= 0.0.1`                         |
+| ExposedSecretReport     | `>= 0.1.0`                  | `>= 0.1.0`                         |
+| RbacAssessmentReport    | `>= 0.1.0`                  | `>= 0.1.4`                         |
+| InfraAssessmentReports  | `>= 0.3.1`                  | `>= 0.7.0`                         |
+| ClusterComplianceReport | `>= 0.3.1`                  | `>= 0.9.0`                         |
+
 ## Integreted Adapters
 ### VulnerabilityReports
 
@@ -71,6 +83,12 @@ metadata:
     uid: 710f2142-7613-4cf5-aef7-dc65306626e2
   resourceVersion: "122118"
   uid: 2ea883ef-c060-4e80-ae34-3f9b527c02bc
+scope:
+  apiVersion: apps/v1
+  kind: ReplicaSet
+  name: nginx-5fbc65fff
+  namespace: test
+  uid: 710f2142-7613-4cf5-aef7-dc65306626e2
 results:
 - category: Vulnerability Scan
   message: 'apt: integer overflows and underflows while parsing .deb packages'
@@ -84,12 +102,6 @@ results:
     registry.server: index.docker.io
     resource: apt
     score: "5.7"
-  resources:
-  - apiVersion: apps/v1
-    kind: ReplicaSet
-    name: nginx-5fbc65fff
-    namespace: test
-    uid: 710f2142-7613-4cf5-aef7-dc65306626e2
   result: warn
   severity: medium
   source: Trivy Vulnerability
@@ -124,6 +136,12 @@ metadata:
     kind: ReplicaSet
     name: nginx-5fbc65fff
     uid: 710f2142-7613-4cf5-aef7-dc65306626e2
+scope:
+  apiVersion: apps/v1
+  kind: ReplicaSet
+  name: nginx-5fbc65fff
+  namespace: test
+  uid: 710f2142-7613-4cf5-aef7-dc65306626e2
 results:
 - category: Kubernetes Security Check
   message: Sysctls can disable security mechanisms or affect all containers on a host,
@@ -131,12 +149,6 @@ results:
     safe if it is namespaced in the container or the Pod, and it is isolated from
     other Pods or processes on the same Node.
   policy: Unsafe sysctl options set
-  resources:
-  - apiVersion: apps/v1
-    kind: ReplicaSet
-    name: nginx-5fbc65fff
-    namespace: test
-    uid: 710f2142-7613-4cf5-aef7-dc65306626e2
   result: pass
   rule: KSV026
   severity: medium
@@ -172,6 +184,12 @@ metadata:
     kind: Role
     name: kyverno:leaderelection
     uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
+scope:
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  name: kyverno:leaderelection
+  namespace: kyverno
+  uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
 results:
 - category: Kubernetes Security Check
   message: Check whether role permits update/create of a malicious pod
@@ -179,12 +197,6 @@ results:
   properties:
     1. message: Role permits create/update of a malicious pod
     resultID: 5d52ad869c9da5e8533ae31a62b8e5a8a2f1838f
-  resources:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: Role
-    name: kyverno:leaderelection
-    namespace: kyverno
-    uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
   result: fail
   rule: KSV048
   severity: high
@@ -198,12 +210,6 @@ results:
   policy: Do not allow users in a rolebinding to add other users to their rolebindings
   properties:
     resultID: 3de0c6a7f01df775fad425283b2cf56771e10902
-  resources:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: Role
-    name: kyverno:leaderelection
-    namespace: kyverno
-    uid: ea031ce4-9f63-4aa9-a68c-da42b523768d
   result: pass
   rule: KSV055
   severity: low
@@ -240,6 +246,11 @@ metadata:
     uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
   resourceVersion: "39436"
   uid: 2296a252-b108-4d4a-b705-4b8983babe2b
+scope:
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  name: system:certificates.k8s.io:kubelet-serving-approver
+  uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
 results:
 - category: Kubernetes Security Check
   message: Some workloads leverage configmaps to store sensitive data or configuration
@@ -248,11 +259,6 @@ results:
   policy: Do not allow management of configmaps
   properties:
     resultID: d06e66683ee5de1136d5996ae0f4e1ae9b5d85c7
-  resources:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    name: system:certificates.k8s.io:kubelet-serving-approver
-    uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
   result: pass
   rule: KSV049
   severity: medium
@@ -265,11 +271,6 @@ results:
   policy: Do not allow privilege escalation from node proxy
   properties:
     resultID: 519454bf1ec35b55d0d8041fb191017bf83519d3
-  resources:
-  - apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    name: system:certificates.k8s.io:kubelet-serving-approver
-    uid: 21449ac8-2f58-4eff-8f3d-c9e4e0024821
   result: pass
   rule: KSV047
   severity: high
@@ -365,6 +366,12 @@ metadata:
     kind: InfraAssessmentReport
     name: pod-kube-apiserver-minikube
     uid: 37266479-d784-4ed9-a4c6-9dda5dff488b
+scope:
+  apiVersion: v1
+  kind: Pod
+  name: kube-apiserver-minikube
+  namespace: kube-system
+  uid: 5a50c600-4dff-42fd-a0c2-6734bb07ab0e
 results:
 - category: Kubernetes Security Check
   message: Ensure that the admission control plugin SecurityContextDeny is set if
@@ -375,12 +382,6 @@ results:
       pods which make use of some SecurityContext fields which could allow for privilege
       escalation in the cluster. This should be used where PodSecurityPolicy is not
       in place within the cluster.
-  resources:
-  - apiVersion: v1
-    kind: Pod
-    name: kube-apiserver-minikube
-    namespace: kube-system
-    uid: 5a50c600-4dff-42fd-a0c2-6734bb07ab0e
   result: fail
   rule: Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy
     is not used

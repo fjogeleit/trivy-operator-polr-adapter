@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aquasecurity/trivy-operator/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
-	"github.com/kyverno/kyverno/api/policyreport/v1alpha2"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
 const (
@@ -16,13 +16,11 @@ const (
 	reportPrefix = "trivy-audit-polr"
 )
 
-var (
-	reportLabels = map[string]string{
-		"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-		"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-		"trivy-operator.source":        "ConfigAuditReport",
-	}
-)
+var reportLabels = map[string]string{
+	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
+	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
+	"trivy-operator.source":        "ConfigAuditReport",
+}
 
 type mapper struct {
 	shared.LabelMapper
@@ -44,7 +42,7 @@ func (m *mapper) Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyRe
 		updated = true
 	}
 
-	res := shared.CreateObjectReference(report.Namespace, report.OwnerReferences, report.Labels)
+	polr.Scope = shared.CreateObjectReference(report.Namespace, report.OwnerReferences, report.Labels)
 
 	for _, check := range report.Report.Checks {
 		props := map[string]string{}
@@ -80,7 +78,6 @@ func (m *mapper) Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyRe
 			Rule:       check.ID,
 			Message:    message,
 			Properties: props,
-			Resources:  []corev1.ObjectReference{res},
 			Result:     MapResult(check.Success),
 			Severity:   shared.MapServerity(check.Severity),
 			Category:   check.Category,
