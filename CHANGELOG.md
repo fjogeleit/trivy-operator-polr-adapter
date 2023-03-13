@@ -1,4 +1,4 @@
-# 0.4.1
+# 0.4.2
 
 * Map CVSS information as properties to PolicyReportResults of VulnerabilityReports
 
