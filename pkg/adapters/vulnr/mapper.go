@@ -84,6 +84,22 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 			props["primaryLink"] = vuln.PrimaryLink
 		}
 
+		for source, cvss := range vuln.CVSS {
+			if cvss.V2Score != 0 {
+				props[fmt.Sprintf("%s.v2_score", source)] = fmt.Sprint(cvss.V2Score)
+			}
+			if cvss.V2Vector != "" {
+				props[fmt.Sprintf("%s.v2_vector", source)] = cvss.V2Vector
+			}
+
+			if cvss.V3Score != 0 {
+				props[fmt.Sprintf("%s.v3_score", source)] = fmt.Sprint(cvss.V3Score)
+			}
+			if cvss.V3Vector != "" {
+				props[fmt.Sprintf("%s.v3_vector", source)] = cvss.V3Vector
+			}
+		}
+
 		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
 			Policy:     vuln.VulnerabilityID,
 			Message:    vuln.Title,
