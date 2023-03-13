@@ -1,3 +1,7 @@
+# 0.4.1
+
+* Map CVSS information as properties to PolicyReportResults of VulnerabilityReports
+
 # 0.4.0
 
 * Add TrivyOperator APIs to the project to reduce not needed dependencies
