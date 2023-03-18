@@ -52,6 +52,9 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("enable-infra-assessment"); flag != nil {
 		v.BindPFlag("infraAssessmentReports.enabled", flag)
 	}
+	if flag := cmd.Flags().Lookup("enable-cluster-infra-assessment"); flag != nil {
+		v.BindPFlag("clusterInfraAssessmentReports.enabled", flag)
+	}
 
 	c := &config.Config{}
 

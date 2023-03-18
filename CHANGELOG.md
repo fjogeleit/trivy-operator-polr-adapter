@@ -1,3 +1,8 @@
+# 0.5.0
+
+* New adapter for ClusterInfraAssessmentReport into ClusterPolicyReport mapping
+
+
 # 0.4.2
 
 * Map CVSS information as properties to PolicyReportResults of VulnerabilityReports

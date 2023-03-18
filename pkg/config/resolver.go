@@ -11,6 +11,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterinfra"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
@@ -24,18 +25,19 @@ import (
 
 // Resolver manages dependencies
 type Resolver struct {
-	config            *Config
-	polrClient        *v1alpha2.Wgpolicyk8sV1alpha2Client
-	k8sConfig         *rest.Config
-	auditrClient      *auditr.Client
-	vulnrClient       *vulnr.Client
-	complianceClient  *compliance.Client
-	rbacClient        *rbac.Client
-	clusterrbacClient *clusterrbac.Client
-	secretClient      *exposedsecret.Client
-	infraClient       *infra.Client
-	kubeBenchClient   *kubebench.Client
-	mgr               manager.Manager
+	config             *Config
+	polrClient         *v1alpha2.Wgpolicyk8sV1alpha2Client
+	k8sConfig          *rest.Config
+	auditrClient       *auditr.Client
+	vulnrClient        *vulnr.Client
+	complianceClient   *compliance.Client
+	rbacClient         *rbac.Client
+	clusterrbacClient  *clusterrbac.Client
+	secretClient       *exposedsecret.Client
+	infraClient        *infra.Client
+	clusterInfraClient *clusterinfra.Client
+	kubeBenchClient    *kubebench.Client
+	mgr                manager.Manager
 }
 
 func (r *Resolver) polrAPI() (*v1alpha2.Wgpolicyk8sV1alpha2Client, error) {
@@ -317,9 +319,40 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 		return nil, err
 	}
 
-	r.infraClient = infra.NewClient(contr, polrClient, r.config.ExposedSecretReports.ApplyLabels)
+	r.infraClient = infra.NewClient(contr, polrClient, r.config.InfraAssessmentReports.ApplyLabels)
 
 	return r.infraClient, nil
+}
+
+// ClusterInfraAssessmentReportClient resolver method
+func (r *Resolver) ClusterInfraAssessmentReportClient() (*clusterinfra.Client, error) {
+	if r.clusterInfraClient != nil {
+		return r.clusterInfraClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("clusterinfraassessment", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.ClusterInfraAssessmentReports.Timeout) * time.Minute,
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.clusterInfraClient = clusterinfra.NewClient(contr, polrClient, r.config.ClusterInfraAssessmentReports.ApplyLabels)
+
+	return r.clusterInfraClient, nil
 }
 
 // NewResolver constructor function

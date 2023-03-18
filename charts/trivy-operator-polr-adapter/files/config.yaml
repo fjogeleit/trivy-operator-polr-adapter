@@ -1,42 +1,56 @@
 vulnerabilityReports:
   enabled: {{ .Values.adapters.vulnerabilityReports.enabled }}
+  timeout: {{ .Values.adapters.vulnerabilityReports.timeout }}
   {{- with .Values.adapters.vulnerabilityReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 configAuditReports:
   enabled: {{ .Values.adapters.configAuditReports.enabled }}
+  timeout: {{ .Values.adapters.configAuditReports.timeout }}
   {{- with .Values.adapters.configAuditReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 cisKubeBenchReports:
   enabled: {{ .Values.adapters.cisKubeBenchReports.enabled }}
+  timeout: {{ .Values.adapters.cisKubeBenchReports.timeout }}
   {{- with .Values.adapters.cisKubeBenchReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 complianceReports:
   enabled: {{ .Values.adapters.complianceReports.enabled }}
+  timeout: {{ .Values.adapters.complianceReports.timeout }}
   {{- with .Values.adapters.complianceReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 rbacAssessmentReports:
   enabled: {{ .Values.adapters.rbacAssessmentReports.enabled }}
+  timeout: {{ .Values.adapters.rbacAssessmentReports.timeout }}
   {{- with .Values.adapters.rbacAssessmentReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 exposedSecretReports:
   enabled: {{ .Values.adapters.exposedSecretReports.enabled }}
+  timeout: {{ .Values.adapters.exposedSecretReports.timeout }}
   {{- with .Values.adapters.exposedSecretReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 infraAssessmentReports:
   enabled: {{ .Values.adapters.infraAssessmentReports.enabled }}
+  timeout: {{ .Values.adapters.infraAssessmentReports.timeout }}
   {{- with .Values.adapters.infraAssessmentReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+clusterInfraAssessmentReports:
+  enabled: {{ .Values.adapters.clusterInfraAssessmentReports.enabled }}
+  timeout: {{ .Values.adapters.clusterInfraAssessmentReports.timeout }}
+  {{- with .Values.adapters.clusterInfraAssessmentReports.applyLabels }}
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
