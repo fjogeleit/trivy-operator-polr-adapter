@@ -134,6 +134,19 @@ func newRunCMD() *cobra.Command {
 				}
 			}
 
+			if c.ClusterInfraAssessmentReports.Enabled {
+				fmt.Println("[INFO] ClusterInfraAssessmentReportClient enabled")
+				clusterInfraClient, err := resolver.ClusterInfraAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = clusterInfraClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
 			mgr, err := resolver.Manager()
 			if err != nil {
 				return err
@@ -154,6 +167,7 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-rbac-assessment", false, "Enable the transformation of RbacAssessmentReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-exposed-secrets", false, "Enable the transformation of ExposedSecretReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-infra-assessment", false, "Enable the transformation of InfraAssessmentReports into PolicyReports")
+	cmd.PersistentFlags().Bool("enable-cluster-infra-assessment", false, "Enable the transformation of ClusterInfraAssessmentReports into ClusterPolicyReports")
 
 	flag.Parse()
 

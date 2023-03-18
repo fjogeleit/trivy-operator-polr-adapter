@@ -33,32 +33,35 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 | --enable-exposed-secrets  |`adapters.exposedSecretReports.enabled` | Enables the transformation of ExposedSecretReport into PolicyReports   | `false`             |
 | --enable-compliance       |`adapters.complianceReports.enabled` | Enables the transformation of ClusterComplianceReport into ClusterPolicyReports| `false`             |
 | --enable-infra-assessment |`adapters.infraAssessmentReports.enabled` | Enables the transformation of InfraAssessmentReports into PolicyReports | `false`             |
+| --enable-cluster-infra-assessment |`adapters.clusterInfraAssessmentReports.enabled` | Enables the transformation of ClusterInfraAssessmentReports into ClusterPolicyReports | `false`             |
 | --enable-kube-bench       |`adapters.cisKubeBenchReports.enabled` | Enables the transformation of CISKubeBenchReports into ClusterPolicyReports<br>(Not available in newer version of Trivy Operator) | `false`             |
 
 ## Available Sources
 
 Sources of the PolicyReportResults can be used to filter different Reports from metrics, views or notifications in Policy Reporter
 
-| Source                 | TrivyReport Report                                 |
-|------------------------|----------------------------------------------------|
-| Trivy ConfigAudit      | ConfigAuditReport                                  |
-| Trivy Vulnerability    | VulnerabilityReport                                |
-| Trivy ExposedSecrets   | ExposedSecretReport                                |
-| Trivy RbacAssessment   | ClusterRbacAssessmentReport / RbacAssessmentReport |
-| Trivy Compliance       | ClusterComplianceReport                            |
-| Trivy InfraAssessment  | InfraAssessmentReports                             |
+| Source                        | TrivyReport Report                                 |
+|-------------------------------|----------------------------------------------------|
+| Trivy ConfigAudit             | ConfigAuditReport                                  |
+| Trivy Vulnerability           | VulnerabilityReport                                |
+| Trivy ExposedSecrets          | ExposedSecretReport                                |
+| Trivy RbacAssessment          | ClusterRbacAssessmentReport / RbacAssessmentReport |
+| Trivy Compliance              | ClusterComplianceReport                            |
+| Trivy InfraAssessment         | InfraAssessmentReports                             |
+| Trivy ClusterInfraAssessment  | ClusterInfraAssessmentReports                      |
 
 ## Support Matrix
 
-| Report CRD              | Trivy Operator Polr Adapter | Trivy Opervator                    |
-|-------------------------|-----------------------------|------------------------------------|
-| CISKubeBenchReport      | `>= 0.0.1`                  | `0.0.1` (removed in newer versions)|
-| VulnerabilityReport     | `>= 0.0.1`                  | `>= 0.0.1`                         |
-| ConfigAuditReport       | `>= 0.0.1`                  | `>= 0.0.1`                         |
-| ExposedSecretReport     | `>= 0.1.0`                  | `>= 0.1.0`                         |
-| RbacAssessmentReport    | `>= 0.1.0`                  | `>= 0.1.4`                         |
-| InfraAssessmentReports  | `>= 0.3.1`                  | `>= 0.7.0`                         |
-| ClusterComplianceReport | `>= 0.3.1`                  | `>= 0.9.0`                         |
+| Report CRD                   | Trivy Operator Polr Adapter | Trivy Opervator                    |
+|------------------------------|-----------------------------|------------------------------------|
+| CISKubeBenchReport           | `>= 0.0.1`                  | `0.0.1` (removed in newer versions)|
+| VulnerabilityReport          | `>= 0.0.1`                  | `>= 0.0.1`                         |
+| ConfigAuditReport            | `>= 0.0.1`                  | `>= 0.0.1`                         |
+| ExposedSecretReport          | `>= 0.1.0`                  | `>= 0.1.0`                         |
+| RbacAssessmentReport         | `>= 0.1.0`                  | `>= 0.1.4`                         |
+| InfraAssessmentReports       | `>= 0.3.1`                  | `>= 0.7.0`                         |
+| ClusterComplianceReport      | `>= 0.3.1`                  | `>= 0.9.0`                         |
+| ClusterInfraAssessmentReport | `>= 0.5.0`                  | `>= 0.11.0`                        |
 
 ## Integreted Adapters
 ### VulnerabilityReports

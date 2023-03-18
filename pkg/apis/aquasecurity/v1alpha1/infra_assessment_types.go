@@ -38,7 +38,7 @@ type ClusterInfraAssessmentReport struct {
 
 // +kubebuilder:object:root=true
 
-// ClusterInfraAssessmentReportList is a list of ClusterInfraAssessmentRepor resources.
+// ClusterInfraAssessmentReportList is a list of ClusterInfraAssessmentReport resources.
 type ClusterInfraAssessmentReportList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`

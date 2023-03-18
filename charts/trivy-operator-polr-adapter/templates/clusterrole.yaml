@@ -18,6 +18,7 @@ rules:
   - clusterrbacassessmentreports
   - exposedsecretreports
   - infraassessmentreports
+  - clusterinfraassessmentreports
   verbs:
   - get
   - list
