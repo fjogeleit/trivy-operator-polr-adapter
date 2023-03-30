@@ -1,5 +1,10 @@
 package config
 
+// Server configuration
+type Server struct {
+	Port int `mapstructure:"port"`
+}
+
 // VulnerabilityReports configuration
 type VulnerabilityReports struct {
 	Enabled     bool     `mapstructure:"enabled"`
@@ -57,6 +62,7 @@ type ClusterInfraAssessmentReports struct {
 // Config of the Tracee Adapter
 type Config struct {
 	Kubeconfig                    string                        `mapstructure:"kubeconfig"`
+	Server                        Server                        `mapstructure:"server"`
 	VulnerabilityReports          VulnerabilityReports          `mapstructure:"vulnerabilityReports"`
 	ConfigAuditReports            ConfigAuditReports            `mapstructure:"configAuditReports"`
 	CISKubeBenchReports           CISKubeBenchReports           `mapstructure:"cisKubeBenchReports"`

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -21,11 +23,13 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/server"
 )
 
 // Resolver manages dependencies
 type Resolver struct {
 	config             *Config
+	crdClient          dynamic.ResourceInterface
 	polrClient         *v1alpha2.Wgpolicyk8sV1alpha2Client
 	k8sConfig          *rest.Config
 	auditrClient       *auditr.Client
@@ -38,6 +42,31 @@ type Resolver struct {
 	clusterInfraClient *clusterinfra.Client
 	kubeBenchClient    *kubebench.Client
 	mgr                manager.Manager
+}
+
+func (r *Resolver) CRDsClient() (dynamic.ResourceInterface, error) {
+	if r.crdClient != nil {
+		return r.crdClient, nil
+	}
+
+	client, err := dynamic.NewForConfig(r.k8sConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	crd := client.Resource(schema.GroupVersionResource{
+		Group:    "apiextensions.k8s.io",
+		Version:  "v1",
+		Resource: "customresourcedefinitions",
+	})
+
+	r.crdClient = crd
+
+	return crd, nil
+}
+
+func (r *Resolver) Server(client dynamic.ResourceInterface) *server.Server {
+	return server.New(client, r.config.Server.Port)
 }
 
 func (r *Resolver) polrAPI() (*v1alpha2.Wgpolicyk8sV1alpha2Client, error) {

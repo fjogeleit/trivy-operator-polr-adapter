@@ -3,12 +3,15 @@ package cmd
 import (
 	"flag"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
 )
 
 func newRunCMD() *cobra.Command {
@@ -32,6 +35,33 @@ func newRunCMD() *cobra.Command {
 			}
 
 			resolver := config.NewResolver(c, k8sConfig)
+
+			crdsClient, err := resolver.CRDsClient()
+			if err != nil {
+				return err
+			}
+
+			srv := resolver.Server(crdsClient)
+			if err != nil {
+				return err
+			}
+
+			go func() {
+				fmt.Printf("[INFO] start server on port %d\n", c.Server.Port)
+				if err := srv.Start(); err != nil {
+					fmt.Println("[ERROR] failed to start server")
+				}
+			}()
+
+			for {
+				err := crd.EnsurePolicyReportAvailable(cmd.Context(), crdsClient)
+				if err == nil {
+					break
+				}
+
+				log.Printf("[ERROR] %s\n", err)
+				time.Sleep(time.Minute)
+			}
 
 			if c.ConfigAuditReports.Enabled {
 				fmt.Println("[INFO] ConfigAuditReports enabled")
@@ -158,6 +188,7 @@ func newRunCMD() *cobra.Command {
 
 	// For local usage
 	cmd.PersistentFlags().StringP("kubeconfig", "k", "", "absolute path to the kubeconfig file")
+	cmd.PersistentFlags().IntP("port", "p", 8080, "Port of the Server")
 	cmd.PersistentFlags().StringP("config", "c", "", "target configuration file")
 
 	cmd.PersistentFlags().Bool("enable-vulnerability", false, "Enable the transformation of VulnerabilityReports into PolicyReports")
