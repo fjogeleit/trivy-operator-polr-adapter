@@ -1,3 +1,6 @@
+server:
+  port: {{ .Values.port.number }}
+
 vulnerabilityReports:
   enabled: {{ .Values.adapters.vulnerabilityReports.enabled }}
   timeout: {{ .Values.adapters.vulnerabilityReports.timeout }}

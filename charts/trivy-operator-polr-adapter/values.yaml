@@ -4,11 +4,28 @@ image:
   registry: ghcr.io
   repository: fjogeleit/trivy-operator-polr-adapter
   pullPolicy: IfNotPresent
-  tag: 0.5.0
+  tag: 0.6.0
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+crds:
+  install: false
+
+port:
+  name: http
+  number: 8080
+
+livenessProbe:
+  httpGet:
+    path: /ready
+    port: http
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: http
 
 adapters:
   vulnerabilityReports:

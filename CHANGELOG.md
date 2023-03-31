@@ -1,3 +1,9 @@
+# 0.6.0
+
+* Add an API Server to provide a Healthz and Ready API
+    * Both APIs checking for the existence of the PolicyReport CRDs
+* Add PolicyReport CRDs to the Helm Chart, can be installed by setting `crds.install` to `true`
+
 # 0.5.0
 
 * New adapter for ClusterInfraAssessmentReport into ClusterPolicyReport mapping
