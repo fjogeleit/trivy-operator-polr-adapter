@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -15,6 +16,7 @@ import (
 )
 
 type Client struct {
+	manager    manager.Manager
 	client     controller.Controller
 	polrClient *PolicyReportClient
 }
@@ -54,8 +56,9 @@ func (e *Client) StartWatching(ctx context.Context) error {
 	})
 }
 
-func NewClient(client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
+func NewClient(mgr manager.Manager, client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
 	return &Client{
+		manager:    mgr,
 		client:     client,
 		polrClient: NewPolicyReportClient(polrClient, applyLabels),
 	}

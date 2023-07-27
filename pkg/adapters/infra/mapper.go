@@ -93,23 +93,28 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 }
 
 func (m *mapper) CreatePolicyReport(report *v1alpha1.InfraAssessmentReport) *v1alpha2.PolicyReport {
-	return &v1alpha2.PolicyReport{
+	polr := &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      GeneratePolicyReportName(report.Name),
 			Namespace: report.Namespace,
 			Labels:    m.CreateLabels(report.Labels, reportLabels),
-			OwnerReferences: []v1.OwnerReference{
-				{
-					APIVersion: report.APIVersion,
-					Kind:       report.Kind,
-					Name:       report.Name,
-					UID:        report.UID,
-				},
-			},
 		},
 		Summary: v1alpha2.PolicyReportSummary{},
 		Results: []v1alpha2.PolicyReportResult{},
 	}
+
+	if report.UID != "" {
+		polr.ObjectMeta.OwnerReferences = []v1.OwnerReference{
+			{
+				APIVersion: shared.APIVersion,
+				Kind:       report.Kind,
+				Name:       report.Name,
+				UID:        report.UID,
+			},
+		}
+	}
+
+	return polr
 }
 
 func GeneratePolicyReportName(name string) string {

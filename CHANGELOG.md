@@ -1,3 +1,8 @@
+# 0.7.0
+
+* Update dependencies
+* Check OwnerReference values to avoid invalid OwnerReferences
+
 # 0.6.0
 
 * Add an API Server to provide a Healthz and Ready API

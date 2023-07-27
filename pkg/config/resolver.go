@@ -162,7 +162,7 @@ func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
 		return nil, err
 	}
 
-	r.vulnrClient = vulnr.NewClient(contr, polrClient, r.config.VulnerabilityReports.ApplyLabels)
+	r.vulnrClient = vulnr.NewClient(mgr, contr, polrClient, r.config.VulnerabilityReports.ApplyLabels)
 
 	return r.vulnrClient, nil
 }
@@ -193,7 +193,7 @@ func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 		return nil, err
 	}
 
-	r.complianceClient = compliance.NewClient(contr, polrClient, r.config.ComplianceReports.ApplyLabels)
+	r.complianceClient = compliance.NewClient(mgr, contr, polrClient, r.config.ComplianceReports.ApplyLabels)
 
 	return r.complianceClient, nil
 }
@@ -224,7 +224,7 @@ func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
 		return nil, err
 	}
 
-	r.rbacClient = rbac.NewClient(contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
+	r.rbacClient = rbac.NewClient(mgr, contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
 
 	return r.rbacClient, nil
 }
@@ -255,7 +255,7 @@ func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, err
 		return nil, err
 	}
 
-	r.clusterrbacClient = clusterrbac.NewClient(contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
+	r.clusterrbacClient = clusterrbac.NewClient(mgr, contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
 
 	return r.clusterrbacClient, nil
 }
@@ -286,7 +286,7 @@ func (r *Resolver) ExposedSecretReportClient() (*exposedsecret.Client, error) {
 		return nil, err
 	}
 
-	r.secretClient = exposedsecret.NewClient(contr, polrClient, r.config.ExposedSecretReports.ApplyLabels)
+	r.secretClient = exposedsecret.NewClient(mgr, contr, polrClient, r.config.ExposedSecretReports.ApplyLabels)
 
 	return r.secretClient, nil
 }
@@ -317,7 +317,7 @@ func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
 		return nil, err
 	}
 
-	r.kubeBenchClient = kubebench.NewClient(contr, polrClient, r.config.CISKubeBenchReports.ApplyLabels)
+	r.kubeBenchClient = kubebench.NewClient(mgr, contr, polrClient, r.config.CISKubeBenchReports.ApplyLabels)
 
 	return r.kubeBenchClient, nil
 }
@@ -348,7 +348,7 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 		return nil, err
 	}
 
-	r.infraClient = infra.NewClient(contr, polrClient, r.config.InfraAssessmentReports.ApplyLabels)
+	r.infraClient = infra.NewClient(mgr, contr, polrClient, r.config.InfraAssessmentReports.ApplyLabels)
 
 	return r.infraClient, nil
 }
@@ -379,7 +379,7 @@ func (r *Resolver) ClusterInfraAssessmentReportClient() (*clusterinfra.Client, e
 		return nil, err
 	}
 
-	r.clusterInfraClient = clusterinfra.NewClient(contr, polrClient, r.config.ClusterInfraAssessmentReports.ApplyLabels)
+	r.clusterInfraClient = clusterinfra.NewClient(mgr, contr, polrClient, r.config.ClusterInfraAssessmentReports.ApplyLabels)
 
 	return r.clusterInfraClient, nil
 }
