@@ -7,6 +7,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -15,12 +16,13 @@ import (
 )
 
 type Client struct {
+	manager    manager.Manager
 	client     controller.Controller
 	polrClient *PolicyReportClient
 }
 
 func (e *Client) StartWatching(ctx context.Context) error {
-	return e.client.Watch(&source.Kind{Type: &v1alpha1.ConfigAuditReport{}}, &handler.EnqueueRequestForObject{}, predicate.Funcs{
+	return e.client.Watch(source.Kind(e.manager.GetCache(), &v1alpha1.ConfigAuditReport{}), &handler.EnqueueRequestForObject{}, predicate.Funcs{
 		CreateFunc: func(event event.CreateEvent) bool {
 			if report, ok := event.Object.(*v1alpha1.ConfigAuditReport); ok {
 				err := e.polrClient.GenerateReport(ctx, report)

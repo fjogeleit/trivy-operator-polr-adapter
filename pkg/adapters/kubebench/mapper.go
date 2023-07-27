@@ -105,23 +105,28 @@ func MapServerity(severity v1alpha1.Severity) v1alpha2.PolicySeverity {
 }
 
 func (m *mapper) CreatePolicyReport(report *v1alpha1.CISKubeBenchReport) *v1alpha2.ClusterPolicyReport {
-	return &v1alpha2.ClusterPolicyReport{
+	cpolr := &v1alpha2.ClusterPolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      GeneratePolicyReportName(report.Name),
 			Namespace: report.Namespace,
 			Labels:    m.CreateLabels(report.Labels, reportLabels),
-			OwnerReferences: []v1.OwnerReference{
-				{
-					APIVersion: report.APIVersion,
-					Kind:       report.Kind,
-					Name:       report.Name,
-					UID:        report.UID,
-				},
-			},
 		},
 		Summary: v1alpha2.PolicyReportSummary{},
 		Results: []v1alpha2.PolicyReportResult{},
 	}
+
+	if report.UID != "" {
+		cpolr.ObjectMeta.OwnerReferences = []v1.OwnerReference{
+			{
+				APIVersion: shared.APIVersion,
+				Kind:       report.Kind,
+				Name:       report.Name,
+				UID:        report.UID,
+			},
+		}
+	}
+
+	return cpolr
 }
 
 func GeneratePolicyReportName(name string) string {

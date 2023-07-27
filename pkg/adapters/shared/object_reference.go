@@ -9,6 +9,8 @@ const (
 	kindLabel      = "trivy-operator.resource.kind"
 	nameLabel      = "trivy-operator.resource.name"
 	namespaceLabel = "trivy-operator.resource.namespace"
+
+	APIVersion = "aquasecurity.github.io/v1alpha1"
 )
 
 func CreateObjectReference(namespace string, owners []v1.OwnerReference, labels map[string]string) *corev1.ObjectReference {
@@ -24,8 +26,9 @@ func CreateObjectReference(namespace string, owners []v1.OwnerReference, labels 
 		}
 	}
 	return &corev1.ObjectReference{
-		Namespace: labels[namespaceLabel],
-		Kind:      labels[kindLabel],
-		Name:      labels[nameLabel],
+		Namespace:  labels[namespaceLabel],
+		APIVersion: APIVersion,
+		Kind:       labels[kindLabel],
+		Name:       labels[nameLabel],
 	}
 }
