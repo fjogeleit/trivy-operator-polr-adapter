@@ -131,7 +131,7 @@ func (r *Resolver) ConfigAuditReportClient() (*auditr.Client, error) {
 		return nil, err
 	}
 
-	r.auditrClient = auditr.NewClient(contr, polrClient, r.config.ConfigAuditReports.ApplyLabels)
+	r.auditrClient = auditr.NewClient(mgr, contr, polrClient, r.config.ConfigAuditReports.ApplyLabels)
 
 	return r.auditrClient, nil
 }

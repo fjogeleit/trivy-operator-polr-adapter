@@ -57,8 +57,9 @@ func (e *Client) StartWatching(ctx context.Context) error {
 	})
 }
 
-func NewClient(client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
+func NewClient(mgr manager.Manager, client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
 	return &Client{
+		manager:    mgr,
 		client:     client,
 		polrClient: NewPolicyReportClient(polrClient, applyLabels),
 	}
