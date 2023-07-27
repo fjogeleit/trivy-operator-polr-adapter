@@ -119,7 +119,7 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.CISKubeBenchReport) *v1alph
 		cpolr.ObjectMeta.OwnerReferences = []v1.OwnerReference{
 			{
 				APIVersion: shared.APIVersion,
-				Kind:       report.Kind,
+				Kind:       "CISKubeBenchReport",
 				Name:       report.Name,
 				UID:        report.UID,
 			},

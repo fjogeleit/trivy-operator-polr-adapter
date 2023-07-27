@@ -108,7 +108,7 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterInfraAssessmentRepor
 		cpolr.ObjectMeta.OwnerReferences = []v1.OwnerReference{
 			{
 				APIVersion: shared.APIVersion,
-				Kind:       report.Kind,
+				Kind:       "ClusterInfraAssessmentReport",
 				Name:       report.Name,
 				UID:        report.UID,
 			},

@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/klog/v2/klogr"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
@@ -33,6 +35,8 @@ func newRunCMD() *cobra.Command {
 			if err != nil {
 				return err
 			}
+
+			ctrl.SetLogger(klogr.New().V(5))
 
 			resolver := config.NewResolver(c, k8sConfig)
 
