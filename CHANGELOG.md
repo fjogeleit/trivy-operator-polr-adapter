@@ -1,8 +1,9 @@
-# 0.7.0
+# 0.7.3
 
 * Update dependencies
 * Check OwnerReference values to avoid invalid OwnerReferences
 * Use ClusterPolicyReport API to delete ClusterInfra Reports
+* Fix missing APIVersion and Kind
 
 # 0.6.0
 
