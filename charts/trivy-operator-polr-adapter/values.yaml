@@ -67,6 +67,8 @@ rbac:
 
 podAnnotations: {}
 
+podLabels: {}
+
 securityContext:
   runAsUser: 1234
   runAsNonRoot: true
