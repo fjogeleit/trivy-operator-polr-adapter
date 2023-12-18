@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	golang.org/x/net v0.19.0
 	k8s.io/api v0.28.4
 	k8s.io/apimachinery v0.28.4
