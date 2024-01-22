@@ -19,6 +19,7 @@ rules:
   - exposedsecretreports
   - infraassessmentreports
   - clusterinfraassessmentreports
+  - clustervulnerabilityreports
   verbs:
   - get
   - list

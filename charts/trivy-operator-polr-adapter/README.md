@@ -53,6 +53,7 @@ Helm Chart to install the trivy-operator PolicyReport adapter
 | rbac.enabled | bool | `true` |  |
 | podAnnotations | object | `{}` |  |
 | podLabels | object | `{}` |  |
+| podSecurityContext.fsGroup | int | `1234` |  |
 | securityContext.runAsUser | int | `1234` |  |
 | securityContext.runAsNonRoot | bool | `true` |  |
 | securityContext.privileged | bool | `false` |  |

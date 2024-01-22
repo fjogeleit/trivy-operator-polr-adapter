@@ -4,8 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
 	"k8s.io/client-go/dynamic"
+
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
 )
 
 type Server struct {

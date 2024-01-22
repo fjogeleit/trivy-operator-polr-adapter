@@ -73,6 +73,9 @@ podAnnotations: {}
 
 podLabels: {}
 
+podSecurityContext:
+  fsGroup: 1234
+
 securityContext:
   runAsUser: 1234
   runAsNonRoot: true
