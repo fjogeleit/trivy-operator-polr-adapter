@@ -113,7 +113,7 @@ verify-helm-docs: codegen-helm-docs ## Check Helm charts are up to date
 .PHONY: ko-build
 ko-build: $(KO)
 	@echo Build image with ko... >&2
-	@cd LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REGISTRY) \
+	@LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(KO_REGISTRY) \
 		$(KO) build . --tags=$(KO_TAGS) --platform=$(LOCAL_PLATFORM)
 
 .PHONY: ko-login
@@ -123,5 +123,5 @@ ko-login: $(KO)
 .PHONY: ko-publish
 ko-publish: ko-login
 	@echo Publishing image "$(KO_TAGS)" with ko... >&2
-	@cd LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(REPO) \
+	@LDFLAGS='$(LD_FLAGS)' KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(REPO) \
 		$(KO) build . --bare --tags=$(KO_TAGS) --push --platform=$(PLATFORMS)
