@@ -10,11 +10,13 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	metricserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterinfra"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clustervulnr"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/infra"
@@ -34,6 +36,7 @@ type Resolver struct {
 	k8sConfig          *rest.Config
 	auditrClient       *auditr.Client
 	vulnrClient        *vulnr.Client
+	clustervulnrClient *clustervulnr.Client
 	complianceClient   *compliance.Client
 	rbacClient         *rbac.Client
 	clusterrbacClient  *clusterrbac.Client
@@ -93,8 +96,10 @@ func (r *Resolver) Manager() (manager.Manager, error) {
 	v1alpha1.AddToScheme(schema)
 
 	mgr, err := manager.New(r.k8sConfig, manager.Options{
-		Scheme:             schema,
-		MetricsBindAddress: "0",
+		Scheme: schema,
+		Metrics: metricserver.Options{
+			BindAddress: "0",
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -165,6 +170,37 @@ func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
 	r.vulnrClient = vulnr.NewClient(mgr, contr, polrClient, r.config.VulnerabilityReports.ApplyLabels)
 
 	return r.vulnrClient, nil
+}
+
+// ClusterVulnerabilityReportClient resolver method
+func (r *Resolver) ClusterVulnerabilityReportClient() (*clustervulnr.Client, error) {
+	if r.clustervulnrClient != nil {
+		return r.clustervulnrClient, nil
+	}
+
+	polrClient, err := r.polrAPI()
+	if err != nil {
+		return nil, err
+	}
+
+	mgr, err := r.Manager()
+	if err != nil {
+		return nil, err
+	}
+
+	contr, err := controller.New("clustervulnerability", mgr, controller.Options{
+		CacheSyncTimeout: time.Duration(r.config.ClusterVulnerabilityReports.Timeout) * time.Minute,
+		Reconciler: reconcile.Func(func(context.Context, reconcile.Request) (reconcile.Result, error) {
+			return reconcile.Result{}, nil
+		}),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	r.clustervulnrClient = clustervulnr.NewClient(mgr, contr, polrClient, r.config.ClusterVulnerabilityReports.ApplyLabels)
+
+	return r.clustervulnrClient, nil
 }
 
 // ComplianceReportClient resolver method

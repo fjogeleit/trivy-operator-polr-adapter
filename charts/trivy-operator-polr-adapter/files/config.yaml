@@ -57,3 +57,10 @@ clusterInfraAssessmentReports:
   applyLabels:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+clusterVulnerabilityReports:
+  enabled: {{ .Values.adapters.clusterVulnerabilityReports.enabled }}
+  timeout: {{ .Values.adapters.clusterVulnerabilityReports.timeout }}
+  {{- with .Values.adapters.clusterVulnerabilityReports.applyLabels }}
+  applyLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}

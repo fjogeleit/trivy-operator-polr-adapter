@@ -23,6 +23,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion,
 		&VulnerabilityReport{},
 		&VulnerabilityReportList{},
+		&ClusterVulnerabilityReport{},
+		&ClusterVulnerabilityReportList{},
 		&ConfigAuditReport{},
 		&ConfigAuditReportList{},
 		&ClusterConfigAuditReport{},
