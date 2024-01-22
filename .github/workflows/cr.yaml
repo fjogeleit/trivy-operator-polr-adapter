@@ -2,10 +2,8 @@ name: Release Charts
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'charts/**'
+    tags:
+      - 'trivy-operator-polr-adapter-v*'
 
 jobs:
   release:

@@ -1,4 +1,4 @@
-package vulnr
+package clustervulnr
 
 import (
 	"crypto/sha1"
@@ -21,20 +21,19 @@ const (
 	containerLabel = "trivy-operator.container.name"
 	kindLabel      = "trivy-operator.resource.kind"
 	nameLabel      = "trivy-operator.resource.name"
-	namespaceLabel = "trivy-operator.resource.namespace"
 )
 
 var reportLabels = map[string]string{
 	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
 	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-	"trivy-operator.source":        "VulnerabilityReport",
+	"trivy-operator.source":        "ClusterVulnerabilityReport",
 }
 
 type mapper struct {
 	shared.LabelMapper
 }
 
-func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
+func (m *mapper) Map(report *v1alpha1.ClusterVulnerabilityReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
 	if len(report.Report.Vulnerabilities) == 0 {
 		return nil, false
 	}
@@ -84,10 +83,6 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 			props["primaryLink"] = vuln.PrimaryLink
 		}
 
-		if report.Report.OS.Family != "" {
-			props["OS"] = strings.TrimSpace(fmt.Sprintf("%s %s", report.Report.OS.Family, report.Report.OS.Name))
-		}
-
 		for source, cvss := range vuln.CVSS {
 			if cvss.V2Score != 0 {
 				props[fmt.Sprintf("%s.v2_score", source)] = fmt.Sprint(cvss.V2Score)
@@ -102,6 +97,10 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 			if cvss.V3Vector != "" {
 				props[fmt.Sprintf("%s.v3_vector", source)] = cvss.V3Vector
 			}
+		}
+
+		if report.Report.OS.Family != "" {
+			props["OS"] = strings.TrimSpace(fmt.Sprintf("%s %s", report.Report.OS.Family, report.Report.OS.Name))
 		}
 
 		polr.Results = append(polr.Results, v1alpha2.PolicyReportResult{
@@ -122,12 +121,11 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 	return polr, updated
 }
 
-func CreateObjectReference(report *v1alpha1.VulnerabilityReport) corev1.ObjectReference {
+func CreateObjectReference(report *v1alpha1.ClusterVulnerabilityReport) corev1.ObjectReference {
 	if len(report.OwnerReferences) == 1 {
 		ref := report.OwnerReferences[0].DeepCopy()
 
 		return corev1.ObjectReference{
-			Namespace:  report.Namespace,
 			APIVersion: ref.APIVersion,
 			Kind:       ref.Kind,
 			Name:       ref.Name,
@@ -135,17 +133,15 @@ func CreateObjectReference(report *v1alpha1.VulnerabilityReport) corev1.ObjectRe
 		}
 	}
 	return corev1.ObjectReference{
-		Namespace: report.Labels[namespaceLabel],
-		Kind:      report.Labels[kindLabel],
-		Name:      report.Labels[nameLabel],
+		Kind: report.Labels[kindLabel],
+		Name: report.Labels[nameLabel],
 	}
 }
 
-func (m *mapper) CreatePolicyReport(report *v1alpha1.VulnerabilityReport) *v1alpha2.PolicyReport {
-	return &v1alpha2.PolicyReport{
+func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterVulnerabilityReport) *v1alpha2.ClusterPolicyReport {
+	return &v1alpha2.ClusterPolicyReport{
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
-			Namespace:       report.Namespace,
 			Labels:          m.CreateLabels(report.Labels, reportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
@@ -162,7 +158,7 @@ func CreateSummary(sum v1alpha1.VulnerabilitySummary) v1alpha2.PolicyReportSumma
 	}
 }
 
-func GeneratePolicyReportName(report *v1alpha1.VulnerabilityReport) string {
+func GeneratePolicyReportName(report *v1alpha1.ClusterVulnerabilityReport) string {
 	name := report.Name
 	if len(report.OwnerReferences) == 1 {
 		name = fmt.Sprintf("%s-%s", strings.ToLower(report.OwnerReferences[0].Kind), report.OwnerReferences[0].Name)

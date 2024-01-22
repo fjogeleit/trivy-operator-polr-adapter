@@ -1,3 +1,8 @@
+# 0.8.0
+
+* Depedency Updates
+* New adapter for ClusterVulnerabilityReports into ClusterPolicyReport mapping 
+
 # 0.7.3
 
 * Update dependencies

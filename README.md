@@ -30,6 +30,7 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 |---------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
 | --kubeconfig              |                                        | Path to the used kubeconfig, mainly for local development             |                    |
 | --enable-vulnerability    |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
+| --enable-cluster-vulnerability    |`adapters.clusterVulnerabilityReports.enabled` | Enables the transformation of ClusterVulnerabilityReports into ClusterPolicyReports | `false`             |
 | --enable-config-audit     |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |
 | --enable-rbac-assessment  |`adapters.rbacAssessmentReports.enabled`| Enables the transformation of RbacAssessmentReport into PolicyReports and<br>ClusterRbacAssessmentReport into ClusterPolicyReports  | `false`             |
 | --enable-exposed-secrets  |`adapters.exposedSecretReports.enabled` | Enables the transformation of ExposedSecretReport into PolicyReports   | `false`             |
@@ -46,6 +47,7 @@ Sources of the PolicyReportResults can be used to filter different Reports from 
 |-------------------------------|----------------------------------------------------|
 | Trivy ConfigAudit             | ConfigAuditReport                                  |
 | Trivy Vulnerability           | VulnerabilityReport                                |
+| Trivy Vulnerability           | ClusterVulnerabilityReports                        |
 | Trivy ExposedSecrets          | ExposedSecretReport                                |
 | Trivy RbacAssessment          | ClusterRbacAssessmentReport / RbacAssessmentReport |
 | Trivy Compliance              | ClusterComplianceReport                            |
@@ -64,6 +66,7 @@ Sources of the PolicyReportResults can be used to filter different Reports from 
 | InfraAssessmentReports       | `>= 0.3.1`                  | `>= 0.7.0`                         |
 | ClusterComplianceReport      | `>= 0.3.1`                  | `>= 0.9.0`                         |
 | ClusterInfraAssessmentReport | `>= 0.5.0`                  | `>= 0.11.0`                        |
+| ClusterVulnerabilityReports  | `>= 0.8.0`                  | `>= 0.18.0`                        |
 
 ## Integreted Adapters
 ### VulnerabilityReports

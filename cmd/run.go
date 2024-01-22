@@ -93,6 +93,19 @@ func newRunCMD() *cobra.Command {
 				}
 			}
 
+			if c.ClusterVulnerabilityReports.Enabled {
+				fmt.Println("[INFO] ClusterVulnerabilityReports enabled")
+				clustervulnrClient, err := resolver.ClusterVulnerabilityReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = clustervulnrClient.StartWatching(cmd.Context())
+				if err != nil {
+					return err
+				}
+			}
+
 			if c.ComplianceReports.Enabled {
 				fmt.Println("[INFO] ComplianceReports enabled")
 				complianceClient, err := resolver.ComplianceReportClient()
@@ -203,6 +216,7 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-exposed-secrets", false, "Enable the transformation of ExposedSecretReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-infra-assessment", false, "Enable the transformation of InfraAssessmentReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-cluster-infra-assessment", false, "Enable the transformation of ClusterInfraAssessmentReports into ClusterPolicyReports")
+	cmd.PersistentFlags().Bool("enable-cluster-vulnerability", false, "Enable the transformation of ClusterVulnerabilityReports into ClusterPolicyReports")
 
 	flag.Parse()
 

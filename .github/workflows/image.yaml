@@ -1,39 +1,111 @@
-name: image
+name: Publish Trivy Polr Adapter
+
 on:
   push:
     tags:
-      - v*
+      - 'v*'
+
+permissions: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  push-policy-reporter:
+  publish-images:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      id-token: write
+    outputs:
+      digest: ${{ steps.digest.outputs.digest }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: find version
-        id: params
-        run: |
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          echo VERSION=$VERSION
-          echo "::set-output name=version::$VERSION"
-
-      - name: login to GitHub Container Registry
-        run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        id: buildx
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      
+      - name: Set up Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
-          install: true
-          version: latest
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
 
-      - name: Publish images
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@d43c1f16c00cfd3978dde6c07f4bbcf9eb6993ca # v0.16.1
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@9614fae9e5c5eddabb09f90a270fcb487c9f7149 # v3.3.0
+
+      - name: Set version
         run: |
-          make IMAGE_TAG="${{ steps.params.outputs.version }}" docker-push
+          set -e
+          TAG=${{ github.ref_name }}
+          echo "VERSION=${TAG#v}" >> $GITHUB_ENV
+
+      - name: Publish Image
+        shell: bash
+        id: ko-publish
+        env:
+          REGISTRY_USERNAME: ${{ github.repository_owner }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_REPOSITORY: ghcr.io/${{ github.repository_owner }}/sbom/trivy-operator-polr-adapter
+        run: |
+          set -e
+          echo "digest=$(make ko-publish)" >> $GITHUB_OUTPUT
+
+      - name: Download cyclonedx-gomod
+        uses: CycloneDX/gh-gomod-generate-sbom@efc74245d6802c8cefd925620515442756c70d8f #v2.0
+        with:
+          version: v1
+      - shell: bash
+        name: Generate SBOM
+        run: cyclonedx-gomod app -licenses -json -output trivy-operator-polr-adapter-bom.cdx.json -main .
+
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        with:
+          name: trivy-operator-polr-adapter-bom-cdx
+          path: trivy-operator-polr-adapter-bom.cdx.json
+
+      - shell: bash
+        env:
+          COSIGN_REPOSITORY: ghcr.io/${{ github.repository_owner }}/signatures/trivy-operator-polr-adapter
+        run: |
+          set -e
+          cosign sign --yes \
+            -a "repo=${{ github.repository }}" \
+            -a "workflow=${{ github.workflow }}" \
+            -a "ref=${{ github.sha }}" \
+            ${{ steps.ko-publish.outputs.digest }}
+
+      - shell: bash
+        env:
+          COSIGN_REPOSITORY: ghcr.io/${{ github.repository_owner }}/sbom/trivy-operator-polr-adapter
+        run: |
+          cosign attach sbom --sbom ./trivy-operator-polr-adapter-bom.cdx.json --type cyclonedx ${{ steps.ko-publish.outputs.digest }}
+
+      - shell: bash
+        id: digest
+        run: |
+          echo "The image generated is: ${{ steps.ko-publish.outputs.digest }}"
+          DIGEST=$(echo ${{ steps.ko-publish.outputs.digest }} | cut -d '@' -f2)
+          echo "Digest from image is: $DIGEST"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+  generate-provenance:
+    needs: publish-images
+    permissions:
+      id-token: write   # To sign the provenance.
+      packages: write   # To upload assets to release.
+      actions: read     # To read the workflow path.
+    # NOTE: The container generator workflow is not officially released as GA.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v1.9.0
+    with:
+      image: ghcr.io/${{ github.repository_owner }}/trivy-operator-polr-adapter
+      digest: "${{ needs.publish-images.outputs.digest }}"
+      registry-username: ${{ github.repository_owner }}
+    secrets:
+      registry-password: ${{ secrets.CR_PAT }}
