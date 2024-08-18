@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/klog/v2/klogr"
+	"k8s.io/klog/v2/textlogger"
 	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
@@ -36,7 +36,7 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
-			ctrl.SetLogger(klogr.New().V(5))
+			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(5))))
 
 			resolver := config.NewResolver(c, k8sConfig)
 
@@ -74,7 +74,7 @@ func newRunCMD() *cobra.Command {
 					return err
 				}
 
-				err = auditrClient.StartWatching(cmd.Context())
+				err = auditrClient.StartWatching()
 				if err != nil {
 					return err
 				}
