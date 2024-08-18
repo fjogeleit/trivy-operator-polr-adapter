@@ -29,7 +29,6 @@ func (e *Client) StartWatching(ctx context.Context) error {
 			if err != nil {
 				log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to process report %s; %s", event.Object.Name, err)
 			}
-
 		},
 		UpdateFunc: func(ctx context.Context, event event.TypedUpdateEvent[*v1alpha1.ClusterInfraAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 			err := e.polrClient.GenerateReport(ctx, event.ObjectNew)

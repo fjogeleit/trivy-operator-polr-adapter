@@ -5,7 +5,7 @@
 KUBECONFIG           ?= ""
 GO 					 ?= go
 BUILD 				 ?= build
-IMAGE_TAG 			 ?= 0.8.0
+IMAGE_TAG 			 ?= 0.8.1
 IMAGE_NAME   		 ?= "trivy-operator-polr-adapter"
 
 #############
