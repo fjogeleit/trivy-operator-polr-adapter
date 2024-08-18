@@ -4,11 +4,12 @@ import (
 	"context"
 	"log"
 
+	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
@@ -22,38 +23,27 @@ type Client struct {
 }
 
 func (e *Client) StartWatching(ctx context.Context) error {
-	return e.client.Watch(source.Kind(e.manager.GetCache(), &v1alpha1.ClusterInfraAssessmentReport{}), &handler.EnqueueRequestForObject{}, predicate.Funcs{
-		CreateFunc: func(event event.CreateEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.ClusterInfraAssessmentReport); ok {
-				err := e.polrClient.GenerateReport(ctx, report)
-				if err != nil {
-					log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to process report %s; %s", report.Name, err)
-				}
+	return e.client.Watch(source.Kind(e.manager.GetCache(), &v1alpha1.ClusterInfraAssessmentReport{}, &handler.TypedFuncs[*v1alpha1.ClusterInfraAssessmentReport, reconcile.Request]{
+		CreateFunc: func(ctx context.Context, event event.TypedCreateEvent[*v1alpha1.ClusterInfraAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+			err := e.polrClient.GenerateReport(ctx, event.Object)
+			if err != nil {
+				log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to process report %s; %s", event.Object.Name, err)
 			}
 
-			return true
 		},
-		UpdateFunc: func(event event.UpdateEvent) bool {
-			if report, ok := event.ObjectNew.(*v1alpha1.ClusterInfraAssessmentReport); ok {
-				err := e.polrClient.GenerateReport(ctx, report)
-				if err != nil {
-					log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to process report %s; %s", report.Name, err)
-				}
+		UpdateFunc: func(ctx context.Context, event event.TypedUpdateEvent[*v1alpha1.ClusterInfraAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+			err := e.polrClient.GenerateReport(ctx, event.ObjectNew)
+			if err != nil {
+				log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to process report %s; %s", event.ObjectNew.Name, err)
 			}
-
-			return true
 		},
-		DeleteFunc: func(event event.DeleteEvent) bool {
-			if report, ok := event.Object.(*v1alpha1.ClusterInfraAssessmentReport); ok {
-				err := e.polrClient.DeleteReport(ctx, report)
-				if err != nil {
-					log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to delete report %s; %s", report.Name, err)
-				}
+		DeleteFunc: func(ctx context.Context, event event.TypedDeleteEvent[*v1alpha1.ClusterInfraAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
+			err := e.polrClient.DeleteReport(ctx, event.Object)
+			if err != nil {
+				log.Printf("[ERROR] ClusterInfraAssessmentReport: Failed to delete report %s; %s", event.Object.Name, err)
 			}
-
-			return true
 		},
-	})
+	}))
 }
 
 func NewClient(mgr manager.Manager, client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
