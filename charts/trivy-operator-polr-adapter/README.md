@@ -2,7 +2,7 @@
 
 Helm Chart to install the trivy-operator PolicyReport adapter
 
-![Version: 0.8.1](https://img.shields.io/badge/Version-0.8.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.8.1](https://img.shields.io/badge/AppVersion-0.8.1-informational?style=flat-square)
+![Version: 0.9.0](https://img.shields.io/badge/Version-0.9.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.9.0](https://img.shields.io/badge/AppVersion-0.9.0-informational?style=flat-square)
 
 ## Values
 
@@ -12,7 +12,7 @@ Helm Chart to install the trivy-operator PolicyReport adapter
 | image.registry | string | `"ghcr.io"` |  |
 | image.repository | string | `"fjogeleit/trivy-operator-polr-adapter"` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.tag | string | `"0.8.0"` |  |
+| image.tag | string | `"0.9.0"` |  |
 | imagePullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
 | fullnameOverride | string | `""` |  |
