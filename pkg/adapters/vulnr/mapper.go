@@ -51,6 +51,9 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 	}
 
 	res := CreateObjectReference(report)
+
+	polr.Scope = &res
+
 	duplCache := map[string]bool{}
 
 	for _, vuln := range report.Report.Vulnerabilities {
@@ -108,7 +111,6 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 			Policy:     vuln.VulnerabilityID,
 			Message:    vuln.Title,
 			Properties: props,
-			Resources:  []corev1.ObjectReference{res},
 			Result:     result,
 			Severity:   shared.MapServerity(vuln.Severity),
 			Category:   category,
