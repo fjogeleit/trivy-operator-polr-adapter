@@ -37,7 +37,7 @@ func (e *Client) StartWatching(ctx context.Context) error {
 			}
 		},
 		DeleteFunc: func(ctx context.Context, event event.TypedDeleteEvent[*v1alpha1.RbacAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
-			err := e.polrClient.GenerateReport(ctx, event.Object)
+			err := e.polrClient.DeleteReport(ctx, event.Object)
 			if err != nil {
 				log.Printf("[ERROR] RbacAssessmentReport: Failed to delete report %s; %s", event.Object.Name, err)
 			}
