@@ -8,7 +8,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	golang.org/x/net v0.41.0
-	k8s.io/api v0.33.1
+	k8s.io/api v0.33.2
 	k8s.io/apimachinery v0.33.2
 	k8s.io/client-go v0.33.1
 	k8s.io/klog/v2 v2.130.1
