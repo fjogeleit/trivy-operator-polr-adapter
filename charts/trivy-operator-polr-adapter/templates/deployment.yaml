@@ -11,11 +11,11 @@ spec:
       {{- include "trivy-operator-polr-adapter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
         checksum/secret: {{ include (print .Template.BasePath "/config.yaml") . | sha256sum | quote }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "trivy-operator-polr-adapter.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
