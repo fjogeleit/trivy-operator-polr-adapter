@@ -3,7 +3,7 @@ module github.com/fjogeleit/trivy-operator-polr-adapter
 go 1.24.1
 
 require (
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	golang.org/x/net v0.43.0
 	k8s.io/api v0.34.0
