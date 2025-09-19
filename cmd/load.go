@@ -55,6 +55,12 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("enable-cluster-infra-assessment"); flag != nil {
 		v.BindPFlag("clusterInfraAssessmentReports.enabled", flag)
 	}
+	if flag := cmd.Flags().Lookup("enable-cluster-vulnerability"); flag != nil {
+		v.BindPFlag("clusterVulnerabilityReports.enabled", flag)
+	}
+	if flag := cmd.Flags().Lookup("use-open-reports"); flag != nil {
+		v.BindPFlag("openReports.enabled", flag)
+	}
 	if flag := cmd.Flags().Lookup("port"); flag != nil {
 		v.BindPFlag("server.port", flag)
 	}

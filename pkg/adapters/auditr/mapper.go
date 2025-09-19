@@ -11,17 +11,6 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
-const (
-	resultSource = "Trivy ConfigAudit"
-	reportPrefix = "trivy-audit-polr"
-)
-
-var reportLabels = map[string]string{
-	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-	"trivy-operator.source":        "ConfigAuditReport",
-}
-
 type mapper struct {
 	shared.LabelMapper
 }
@@ -36,7 +25,7 @@ func (m *mapper) Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyRe
 	if polr == nil {
 		polr = m.CreatePolicyReport(report)
 	} else {
-		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
+		polr.Labels = m.CreateLabels(report.Labels, ReportLabels)
 		polr.Summary = v1alpha2.PolicyReportSummary{}
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -82,7 +71,7 @@ func (m *mapper) Map(report *v1alpha1.ConfigAuditReport, polr *v1alpha2.PolicyRe
 			Severity:   shared.MapServerity(check.Severity),
 			Category:   check.Category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     resultSource,
+			Source:     TrivySource,
 		})
 	}
 
@@ -100,9 +89,9 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 func (m *mapper) CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha2.PolicyReport {
 	return &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
-			Name:            GeneratePolicyReportName(report),
+			Name:            GenerateReportName(report),
 			Namespace:       report.Namespace,
-			Labels:          m.CreateLabels(report.Labels, reportLabels),
+			Labels:          m.CreateLabels(report.Labels, ReportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: v1alpha2.PolicyReportSummary{},
@@ -110,11 +99,11 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.ConfigAuditReport) *v1alpha
 	}
 }
 
-func GeneratePolicyReportName(report *v1alpha1.ConfigAuditReport) string {
+func GenerateReportName(report *v1alpha1.ConfigAuditReport) string {
 	name := report.Name
 	if len(report.OwnerReferences) == 1 {
 		name = fmt.Sprintf("%s-%s", strings.ToLower(report.OwnerReferences[0].Kind), report.OwnerReferences[0].Name)
 	}
 
-	return fmt.Sprintf("%s-%s", reportPrefix, name)
+	return fmt.Sprintf("%s-%s", ReportPrefix, name)
 }

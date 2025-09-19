@@ -1,3 +1,7 @@
+# 0.11.0
+
+* Support OpenReports as output CRD.
+
 # 0.8.1
 
 * Depedency Updates

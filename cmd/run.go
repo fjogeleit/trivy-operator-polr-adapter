@@ -32,9 +32,6 @@ func newRunCMD() *cobra.Command {
 			} else {
 				k8sConfig, err = rest.InClusterConfig()
 			}
-			if err != nil {
-				return err
-			}
 
 			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(5))))
 
@@ -46,9 +43,6 @@ func newRunCMD() *cobra.Command {
 			}
 
 			srv := resolver.Server(crdsClient)
-			if err != nil {
-				return err
-			}
 
 			go func() {
 				fmt.Printf("[INFO] start server on port %d\n", c.Server.Port)
@@ -217,6 +211,7 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-infra-assessment", false, "Enable the transformation of InfraAssessmentReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-cluster-infra-assessment", false, "Enable the transformation of ClusterInfraAssessmentReports into ClusterPolicyReports")
 	cmd.PersistentFlags().Bool("enable-cluster-vulnerability", false, "Enable the transformation of ClusterVulnerabilityReports into ClusterPolicyReports")
+	cmd.PersistentFlags().Bool("use-open-reports", false, "Use OpenReports API as report format")
 
 	flag.Parse()
 
