@@ -5,9 +5,3 @@ description: Helm Chart to install the trivy-operator PolicyReport adapter
 type: application
 version: "0.11.1"
 appVersion: "0.11.1"
-
-dependencies:
-  - name: openreports
-    version: "0.1.0"
-    repository: "https://openreports.github.io/reports-api"
-    condition: openreports.install
