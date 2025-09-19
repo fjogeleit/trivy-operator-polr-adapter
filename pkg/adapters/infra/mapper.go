@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"crypto/sha1"
 	"fmt"
 
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,17 +9,6 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
-
-const (
-	trivySource  = "Trivy InfraAssessment"
-	reportPrefix = "trivy-infra-polr"
-)
-
-var reportLabels = map[string]string{
-	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-	"trivy-operator.source":        "InfraAssessmentReport",
-}
 
 type mapper struct {
 	shared.LabelMapper
@@ -32,7 +20,7 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 	if polr == nil {
 		polr = m.CreatePolicyReport(report)
 	} else {
-		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
+		polr.Labels = m.CreateLabels(report.Labels, ReportLabels)
 		polr.Summary = v1alpha2.PolicyReportSummary{}
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -84,7 +72,7 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 			Result:     MapResult(check.Success),
 			Severity:   shared.MapServerity(check.Severity),
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     trivySource,
+			Source:     TrivySource,
 			Properties: props,
 		})
 	}
@@ -95,9 +83,9 @@ func (m *mapper) Map(report *v1alpha1.InfraAssessmentReport, polr *v1alpha2.Poli
 func (m *mapper) CreatePolicyReport(report *v1alpha1.InfraAssessmentReport) *v1alpha2.PolicyReport {
 	polr := &v1alpha2.PolicyReport{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      GeneratePolicyReportName(report.Name),
+			Name:      GenerateReportName(report.Name),
 			Namespace: report.Namespace,
-			Labels:    m.CreateLabels(report.Labels, reportLabels),
+			Labels:    m.CreateLabels(report.Labels, ReportLabels),
 		},
 		Summary: v1alpha2.PolicyReportSummary{},
 		Results: []v1alpha2.PolicyReportResult{},
@@ -117,8 +105,8 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.InfraAssessmentReport) *v1a
 	return polr
 }
 
-func GeneratePolicyReportName(name string) string {
-	return fmt.Sprintf("%s-%s", reportPrefix, name)
+func GenerateReportName(name string) string {
+	return fmt.Sprintf("%s-%s", ReportPrefix, name)
 }
 
 func MapResult(success bool) v1alpha2.PolicyResult {
@@ -127,13 +115,4 @@ func MapResult(success bool) v1alpha2.PolicyResult {
 	}
 
 	return v1alpha2.StatusFail
-}
-
-func generateID(target, policy, rule, category string, result v1alpha2.PolicyResult) string {
-	id := fmt.Sprintf("%s_%s_%s_%s_%s", target, policy, rule, result, category)
-
-	h := sha1.New()
-	h.Write([]byte(id))
-
-	return fmt.Sprintf("%x", h.Sum(nil))
 }

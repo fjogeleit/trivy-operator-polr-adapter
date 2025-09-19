@@ -5,7 +5,7 @@
 KUBECONFIG           ?= ""
 GO 					 ?= go
 BUILD 				 ?= build
-IMAGE_TAG 			 ?= 0.8.1
+IMAGE_TAG 			 ?= 0.11.0
 IMAGE_NAME   		 ?= "trivy-operator-polr-adapter"
 
 #############
@@ -37,15 +37,15 @@ endif
 #########
 TOOLS_DIR      					   := $(PWD)/.tools
 KO             					   := $(TOOLS_DIR)/ko
-KO_VERSION     					   := v0.15.1
+KO_VERSION     					   := v0.18.0
 GCI                                := $(TOOLS_DIR)/gci
-GCI_VERSION                        := v0.9.1
+GCI_VERSION                        := v0.13.7
 GOFUMPT                            := $(TOOLS_DIR)/gofumpt
-GOFUMPT_VERSION                    := v0.4.0
+GOFUMPT_VERSION                    := v0.9.1
 HELM                               := $(TOOLS_DIR)/helm
-HELM_VERSION                       := v3.10.1
+HELM_VERSION                       := v3.19.0
 HELM_DOCS                          := $(TOOLS_DIR)/helm-docs
-HELM_DOCS_VERSION                  := v1.11.0
+HELM_DOCS_VERSION                  := v1.14.2
 
 $(HELM):
 	@echo Install helm... >&2
@@ -96,7 +96,7 @@ clean-tools: ## Remove installed tools
 .PHONY: codegen-helm-docs
 codegen-helm-docs: ## Generate helm docs
 	@echo Generate helm docs... >&2
-	@docker run -v ${PWD}/charts:/work -w /work jnorwood/helm-docs:v1.11.0 -s file
+	@docker run -v ${PWD}/charts:/work -w /work jnorwood/helm-docs:$(HELM_DOCS_VERSION) -s file
 
 .PHONY: verify-helm-docs
 verify-helm-docs: codegen-helm-docs ## Check Helm charts are up to date

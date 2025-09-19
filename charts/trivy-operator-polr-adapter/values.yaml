@@ -13,6 +13,10 @@ fullnameOverride: ""
 crds:
   install: false
 
+openreports:
+  enabled: false
+  install: false
+
 port:
   name: http
   number: 8080

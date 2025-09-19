@@ -13,14 +13,19 @@ import (
 	pr "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 )
 
-type PolicyReportClient struct {
+type ReportClient interface {
+	GenerateReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error
+	DeleteReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error
+}
+
+type reportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
 	mapper    *mapper
 }
 
-func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error {
+func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		polr, err := p.k8sClient.ClusterPolicyReports().Get(ctx, GeneratePolicyReportName(report.Name), v1.GetOptions{})
+		polr, err := p.k8sClient.ClusterPolicyReports().Get(ctx, GenerateReportName(report.Name), v1.GetOptions{})
 		if !errors.IsNotFound(err) && err != nil {
 			return err
 		} else if errors.IsNotFound(err) {
@@ -42,9 +47,9 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 	})
 }
 
-func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error {
+func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error {
 	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := p.k8sClient.ClusterPolicyReports().Delete(ctx, GeneratePolicyReportName(report.Name), v1.DeleteOptions{})
+		err := p.k8sClient.ClusterPolicyReports().Delete(ctx, GenerateReportName(report.Name), v1.DeleteOptions{})
 		if err != nil && !errors.IsNotFound(err) {
 			return err
 		}
@@ -53,8 +58,8 @@ func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.
 	})
 }
 
-func NewPolicyReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *PolicyReportClient {
-	return &PolicyReportClient{
+func NewReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) ReportClient {
+	return &reportClient{
 		k8sClient: client,
 		mapper:    &mapper{shared.NewLabelMapper(applyLabels)},
 	}

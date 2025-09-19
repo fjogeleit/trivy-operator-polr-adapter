@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	orv1alpha1 "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
@@ -14,15 +15,24 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr"
+	auditror "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/auditr/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterinfra"
+	clusterinfraor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterinfra/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac"
+	clusterrbacor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clusterrbac/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clustervulnr"
+	clustervulnror "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clustervulnr/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance"
+	complianceor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/compliance/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
+	exposedsecretor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/infra"
+	infraor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/infra/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/kubebench"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/rbac"
+	rbacor "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/rbac/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr"
+	vulnror "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/server"
@@ -33,10 +43,11 @@ type Resolver struct {
 	config             *Config
 	crdClient          dynamic.ResourceInterface
 	polrClient         *v1alpha2.Wgpolicyk8sV1alpha2Client
+	orClient           *orv1alpha1.OpenreportsV1alpha1Client
 	k8sConfig          *rest.Config
 	auditrClient       *auditr.Client
-	vulnrClient        *vulnr.Client
-	clustervulnrClient *clustervulnr.Client
+	vulnrClient        vulnr.Client
+	clustervulnrClient clustervulnr.Client
 	complianceClient   *compliance.Client
 	rbacClient         *rbac.Client
 	clusterrbacClient  *clusterrbac.Client
@@ -72,18 +83,32 @@ func (r *Resolver) Server(client dynamic.ResourceInterface) *server.Server {
 	return server.New(client, r.config.Server.Port)
 }
 
-func (r *Resolver) polrAPI() (*v1alpha2.Wgpolicyk8sV1alpha2Client, error) {
+func (r *Resolver) polrAPI() *v1alpha2.Wgpolicyk8sV1alpha2Client {
 	if r.polrClient != nil {
-		return r.polrClient, nil
+		return r.polrClient
 	}
 	client, err := v1alpha2.NewForConfig(r.k8sConfig)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	r.polrClient = client
 
-	return client, nil
+	return client
+}
+
+func (r *Resolver) orAPI() *orv1alpha1.OpenreportsV1alpha1Client {
+	if r.orClient != nil {
+		return r.orClient
+	}
+	client, err := orv1alpha1.NewForConfig(r.k8sConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	r.orClient = client
+
+	return client
 }
 
 func (r *Resolver) Manager() (manager.Manager, error) {
@@ -116,11 +141,6 @@ func (r *Resolver) ConfigAuditReportClient() (*auditr.Client, error) {
 		return r.auditrClient, nil
 	}
 
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
-	}
-
 	mgr, err := r.Manager()
 	if err != nil {
 		return nil, err
@@ -136,20 +156,23 @@ func (r *Resolver) ConfigAuditReportClient() (*auditr.Client, error) {
 		return nil, err
 	}
 
-	r.auditrClient = auditr.NewClient(mgr, contr, polrClient, r.config.ConfigAuditReports.ApplyLabels)
+	var client auditr.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = auditror.NewReportClient(r.orAPI(), r.config.VulnerabilityReports.ApplyLabels)
+	} else {
+		client = auditr.NewReportClient(r.polrAPI(), r.config.VulnerabilityReports.ApplyLabels)
+	}
+
+	r.auditrClient = auditr.NewClient(mgr, contr, client)
 
 	return r.auditrClient, nil
 }
 
 // VulnerabilityReportClient resolver method
-func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
+func (r *Resolver) VulnerabilityReportClient() (vulnr.Client, error) {
 	if r.vulnrClient != nil {
 		return r.vulnrClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -167,20 +190,23 @@ func (r *Resolver) VulnerabilityReportClient() (*vulnr.Client, error) {
 		return nil, err
 	}
 
-	r.vulnrClient = vulnr.NewClient(mgr, contr, polrClient, r.config.VulnerabilityReports.ApplyLabels)
+	var client vulnr.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = vulnror.NewReportClient(r.orAPI(), r.config.VulnerabilityReports.ApplyLabels)
+	} else {
+		client = vulnr.NewReportClient(r.polrAPI(), r.config.VulnerabilityReports.ApplyLabels)
+	}
+
+	r.vulnrClient = vulnr.NewClient(mgr, contr, client)
 
 	return r.vulnrClient, nil
 }
 
 // ClusterVulnerabilityReportClient resolver method
-func (r *Resolver) ClusterVulnerabilityReportClient() (*clustervulnr.Client, error) {
+func (r *Resolver) ClusterVulnerabilityReportClient() (clustervulnr.Client, error) {
 	if r.clustervulnrClient != nil {
 		return r.clustervulnrClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -198,7 +224,15 @@ func (r *Resolver) ClusterVulnerabilityReportClient() (*clustervulnr.Client, err
 		return nil, err
 	}
 
-	r.clustervulnrClient = clustervulnr.NewClient(mgr, contr, polrClient, r.config.ClusterVulnerabilityReports.ApplyLabels)
+	var client clustervulnr.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = clustervulnror.NewReportClient(r.orAPI(), r.config.ClusterVulnerabilityReports.ApplyLabels)
+	} else {
+		client = clustervulnr.NewReportClient(r.polrAPI(), r.config.ClusterVulnerabilityReports.ApplyLabels)
+	}
+
+	r.clustervulnrClient = clustervulnr.NewClient(mgr, contr, client)
 
 	return r.clustervulnrClient, nil
 }
@@ -207,11 +241,6 @@ func (r *Resolver) ClusterVulnerabilityReportClient() (*clustervulnr.Client, err
 func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 	if r.complianceClient != nil {
 		return r.complianceClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -229,7 +258,15 @@ func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 		return nil, err
 	}
 
-	r.complianceClient = compliance.NewClient(mgr, contr, polrClient, r.config.ComplianceReports.ApplyLabels)
+	var client compliance.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = complianceor.NewReportClient(r.orAPI(), r.config.ComplianceReports.ApplyLabels)
+	} else {
+		client = compliance.NewReportClient(r.polrAPI(), r.config.ComplianceReports.ApplyLabels)
+	}
+
+	r.complianceClient = compliance.NewClient(mgr, contr, client)
 
 	return r.complianceClient, nil
 }
@@ -238,11 +275,6 @@ func (r *Resolver) ComplianceReportClient() (*compliance.Client, error) {
 func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
 	if r.rbacClient != nil {
 		return r.rbacClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -260,7 +292,15 @@ func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
 		return nil, err
 	}
 
-	r.rbacClient = rbac.NewClient(mgr, contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
+	var client rbac.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = rbacor.NewReportClient(r.orAPI(), r.config.RbacAssessmentReports.ApplyLabels)
+	} else {
+		client = rbac.NewReportClient(r.polrAPI(), r.config.RbacAssessmentReports.ApplyLabels)
+	}
+
+	r.rbacClient = rbac.NewClient(mgr, contr, client)
 
 	return r.rbacClient, nil
 }
@@ -269,11 +309,6 @@ func (r *Resolver) RbacAssessmentReportClient() (*rbac.Client, error) {
 func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, error) {
 	if r.clusterrbacClient != nil {
 		return r.clusterrbacClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -291,7 +326,15 @@ func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, err
 		return nil, err
 	}
 
-	r.clusterrbacClient = clusterrbac.NewClient(mgr, contr, polrClient, r.config.RbacAssessmentReports.ApplyLabels)
+	var client clusterrbac.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = clusterrbacor.NewReportClient(r.orAPI(), r.config.RbacAssessmentReports.ApplyLabels)
+	} else {
+		client = clusterrbac.NewReportClient(r.polrAPI(), r.config.RbacAssessmentReports.ApplyLabels)
+	}
+
+	r.clusterrbacClient = clusterrbac.NewClient(mgr, contr, client)
 
 	return r.clusterrbacClient, nil
 }
@@ -300,11 +343,6 @@ func (r *Resolver) ClusterRbacAssessmentReportClient() (*clusterrbac.Client, err
 func (r *Resolver) ExposedSecretReportClient() (*exposedsecret.Client, error) {
 	if r.secretClient != nil {
 		return r.secretClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -322,7 +360,15 @@ func (r *Resolver) ExposedSecretReportClient() (*exposedsecret.Client, error) {
 		return nil, err
 	}
 
-	r.secretClient = exposedsecret.NewClient(mgr, contr, polrClient, r.config.ExposedSecretReports.ApplyLabels)
+	var client exposedsecret.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = exposedsecretor.NewReportClient(r.orAPI(), r.config.ExposedSecretReports.ApplyLabels)
+	} else {
+		client = exposedsecret.NewReportClient(r.polrAPI(), r.config.ExposedSecretReports.ApplyLabels)
+	}
+
+	r.secretClient = exposedsecret.NewClient(mgr, contr, client)
 
 	return r.secretClient, nil
 }
@@ -333,10 +379,7 @@ func (r *Resolver) CISKubeBenchReportClient() (*kubebench.Client, error) {
 		return r.kubeBenchClient, nil
 	}
 
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
-	}
+	polrClient := r.polrAPI()
 
 	mgr, err := r.Manager()
 	if err != nil {
@@ -364,11 +407,6 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 		return r.infraClient, nil
 	}
 
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
-	}
-
 	mgr, err := r.Manager()
 	if err != nil {
 		return nil, err
@@ -384,7 +422,15 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 		return nil, err
 	}
 
-	r.infraClient = infra.NewClient(mgr, contr, polrClient, r.config.InfraAssessmentReports.ApplyLabels)
+	var client infra.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = infraor.NewReportClient(r.orAPI(), r.config.InfraAssessmentReports.ApplyLabels)
+	} else {
+		client = infra.NewReportClient(r.polrAPI(), r.config.InfraAssessmentReports.ApplyLabels)
+	}
+
+	r.infraClient = infra.NewClient(mgr, contr, client)
 
 	return r.infraClient, nil
 }
@@ -393,11 +439,6 @@ func (r *Resolver) InfraAssessmentReportClient() (*infra.Client, error) {
 func (r *Resolver) ClusterInfraAssessmentReportClient() (*clusterinfra.Client, error) {
 	if r.clusterInfraClient != nil {
 		return r.clusterInfraClient, nil
-	}
-
-	polrClient, err := r.polrAPI()
-	if err != nil {
-		return nil, err
 	}
 
 	mgr, err := r.Manager()
@@ -415,7 +456,15 @@ func (r *Resolver) ClusterInfraAssessmentReportClient() (*clusterinfra.Client, e
 		return nil, err
 	}
 
-	r.clusterInfraClient = clusterinfra.NewClient(mgr, contr, polrClient, r.config.ClusterInfraAssessmentReports.ApplyLabels)
+	var client clusterinfra.ReportClient
+
+	if r.config.OpenReport.Enabled {
+		client = clusterinfraor.NewReportClient(r.orAPI(), r.config.ClusterInfraAssessmentReports.ApplyLabels)
+	} else {
+		client = clusterinfra.NewReportClient(r.polrAPI(), r.config.ClusterInfraAssessmentReports.ApplyLabels)
+	}
+
+	r.clusterInfraClient = clusterinfra.NewClient(mgr, contr, client)
 
 	return r.clusterInfraClient, nil
 }

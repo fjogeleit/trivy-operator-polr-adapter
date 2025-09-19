@@ -54,7 +54,7 @@ func (m *mapper) Map(report *v1alpha1.ClusterVulnerabilityReport, polr *v1alpha2
 
 	for _, vuln := range report.Report.Vulnerabilities {
 		result := shared.MapResult(vuln.Severity)
-		id := generateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result))
+		id := GenerateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result))
 		if duplCache[id] {
 			continue
 		}
@@ -167,7 +167,7 @@ func GeneratePolicyReportName(report *v1alpha1.ClusterVulnerabilityReport) strin
 	return fmt.Sprintf("%s-%s", reportPrefix, name)
 }
 
-func generateID(uid, name, policy, rule, result string) string {
+func GenerateID(uid, name, policy, rule, result string) string {
 	id := fmt.Sprintf("%s_%s_%s_%s_%s", uid, name, policy, rule, result)
 
 	h := sha1.New()

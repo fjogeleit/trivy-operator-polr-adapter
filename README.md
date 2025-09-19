@@ -7,7 +7,10 @@ Maps Trivy Operator CRDs into the unified PolicyReport and ClusterPolicyReport f
 ## Pre Requirements
 
 1. [Trivy Operator](https://github.com/aquasecurity/trivy-operator) with the related CRDs is installed and running
-2. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1alpha2) are installed in your Cluster, they can be installed via the Helm Chart by setting `crds.install` to `true`.
+
+2a. [PolicyReport CRDs](https://github.com/kubernetes-sigs/wg-policy-prototypes/tree/master/policy-report/crd/v1alpha2) are installed in your Cluster, they can be installed via the Helm Chart by setting `crds.install` to `true`.
+
+2b. [OpenReports CRDS](https://github.com/openreports/reports-api/blob/main/config/install.yaml) are installed in your Cluster, they can be installed via the Helm Chart by setting `openreports.install` to `true`.
 
 ## Installation via Helm
 
@@ -29,6 +32,7 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 | Argument                  | Helm Value                             | Description                                                           | Default Helm Value |
 |---------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
 | --kubeconfig              |                                        | Path to the used kubeconfig, mainly for local development             |                    |
+| --use-open-reports        |`openreports.enabled`                   | Use the OpenReports API as report format instead of the PolicyReport API   |     `false`   |
 | --enable-vulnerability    |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
 | --enable-cluster-vulnerability    |`adapters.clusterVulnerabilityReports.enabled` | Enables the transformation of ClusterVulnerabilityReports into ClusterPolicyReports | `false`             |
 | --enable-config-audit     |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |

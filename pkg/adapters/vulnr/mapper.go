@@ -13,23 +13,6 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
-const (
-	trivySource  = "Trivy Vulnerability"
-	reportPrefix = "trivy-vuln-polr"
-	category     = "Vulnerability Scan"
-
-	containerLabel = "trivy-operator.container.name"
-	kindLabel      = "trivy-operator.resource.kind"
-	nameLabel      = "trivy-operator.resource.name"
-	namespaceLabel = "trivy-operator.resource.namespace"
-)
-
-var reportLabels = map[string]string{
-	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-	"trivy-operator.source":        "VulnerabilityReport",
-}
-
 type mapper struct {
 	shared.LabelMapper
 }
@@ -44,7 +27,7 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 	if polr == nil {
 		polr = m.CreatePolicyReport(report)
 	} else {
-		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
+		polr.Labels = m.CreateLabels(report.Labels, ReportLabels)
 		polr.Summary = CreateSummary(report.Report.Summary)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -58,7 +41,7 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 
 	for _, vuln := range report.Report.Vulnerabilities {
 		result := shared.MapResult(vuln.Severity)
-		id := generateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result))
+		id := GenerateID(string(res.UID), res.Name, vuln.VulnerabilityID, vuln.Resource, string(result))
 		if duplCache[id] {
 			continue
 		}
@@ -113,9 +96,9 @@ func (m *mapper) Map(report *v1alpha1.VulnerabilityReport, polr *v1alpha2.Policy
 			Properties: props,
 			Result:     result,
 			Severity:   shared.MapServerity(vuln.Severity),
-			Category:   category,
+			Category:   Category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     trivySource,
+			Source:     TrivySource,
 		})
 
 		duplCache[id] = true
@@ -137,9 +120,9 @@ func CreateObjectReference(report *v1alpha1.VulnerabilityReport) corev1.ObjectRe
 		}
 	}
 	return corev1.ObjectReference{
-		Namespace: report.Labels[namespaceLabel],
-		Kind:      report.Labels[kindLabel],
-		Name:      report.Labels[nameLabel],
+		Namespace: report.Labels[NamespaceLabel],
+		Kind:      report.Labels[KindLabel],
+		Name:      report.Labels[NameLabel],
 	}
 }
 
@@ -148,7 +131,7 @@ func (m *mapper) CreatePolicyReport(report *v1alpha1.VulnerabilityReport) *v1alp
 		ObjectMeta: v1.ObjectMeta{
 			Name:            GeneratePolicyReportName(report),
 			Namespace:       report.Namespace,
-			Labels:          m.CreateLabels(report.Labels, reportLabels),
+			Labels:          m.CreateLabels(report.Labels, ReportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: CreateSummary(report.Report.Summary),
@@ -170,10 +153,10 @@ func GeneratePolicyReportName(report *v1alpha1.VulnerabilityReport) string {
 		name = fmt.Sprintf("%s-%s", strings.ToLower(report.OwnerReferences[0].Kind), report.OwnerReferences[0].Name)
 	}
 
-	return fmt.Sprintf("%s-%s", reportPrefix, name)
+	return fmt.Sprintf("%s-%s", ReportPrefix, name)
 }
 
-func generateID(uid, name, policy, rule, result string) string {
+func GenerateID(uid, name, policy, rule, result string) string {
 	id := fmt.Sprintf("%s_%s_%s_%s_%s", uid, name, policy, rule, result)
 
 	h := sha1.New()

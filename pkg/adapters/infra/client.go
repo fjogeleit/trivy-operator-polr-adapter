@@ -13,17 +13,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 )
 
 type Client struct {
 	manager    manager.Manager
-	client     controller.Controller
-	polrClient *PolicyReportClient
+	controller controller.Controller
+	polrClient ReportClient
 }
 
 func (e *Client) StartWatching(ctx context.Context) error {
-	return e.client.Watch(source.Kind(e.manager.GetCache(), &v1alpha1.InfraAssessmentReport{}, &handler.TypedFuncs[*v1alpha1.InfraAssessmentReport, reconcile.Request]{
+	return e.controller.Watch(source.Kind(e.manager.GetCache(), &v1alpha1.InfraAssessmentReport{}, &handler.TypedFuncs[*v1alpha1.InfraAssessmentReport, reconcile.Request]{
 		CreateFunc: func(ctx context.Context, event event.TypedCreateEvent[*v1alpha1.InfraAssessmentReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 			err := e.polrClient.GenerateReport(ctx, event.Object)
 			if err != nil {
@@ -45,10 +44,10 @@ func (e *Client) StartWatching(ctx context.Context) error {
 	}))
 }
 
-func NewClient(mgr manager.Manager, client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
+func NewClient(mgr manager.Manager, controller controller.Controller, rclient ReportClient) *Client {
 	return &Client{
 		manager:    mgr,
-		client:     client,
-		polrClient: NewPolicyReportClient(polrClient, applyLabels),
+		controller: controller,
+		polrClient: rclient,
 	}
 }

@@ -12,22 +12,6 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/policyreport/v1alpha2"
 )
 
-const (
-	trivySource  = "Trivy RbacAssessment"
-	reportPrefix = "trivy-rbac-cpolr"
-	category     = "ClusterRbacAssessment"
-
-	containerLabel = "trivy-operator.container.name"
-	kindLabel      = "trivy-operator.resource.kind"
-	nameAnnotation = "trivy-operator.resource.name"
-)
-
-var reportLabels = map[string]string{
-	"app.kubernetes.io/managed-by": "trivy-operator-polr-adapter",
-	"app.kubernetes.io/created-by": "trivy-operator-polr-adapter",
-	"trivy-operator.source":        "ClusterRbacAssessmentReport",
-}
-
 type mapper struct {
 	shared.LabelMapper
 }
@@ -42,7 +26,7 @@ func (m *mapper) Map(report *v1alpha1.ClusterRbacAssessmentReport, polr *v1alpha
 	if polr == nil {
 		polr = m.CreatePolicyReport(report)
 	} else {
-		polr.Labels = m.CreateLabels(report.Labels, reportLabels)
+		polr.Labels = m.CreateLabels(report.Labels, ReportLabels)
 		polr.Summary = CreateSummary(report)
 		polr.Results = []v1alpha2.PolicyReportResult{}
 		updated = true
@@ -55,7 +39,7 @@ func (m *mapper) Map(report *v1alpha1.ClusterRbacAssessmentReport, polr *v1alpha
 		result := MapResult(check.Success)
 
 		props := map[string]string{
-			"resultID": generateID(string(polr.Scope.UID), polr.Scope.Name, check.Title, check.ID, string(result)),
+			"resultID": GenerateID(string(polr.Scope.UID), polr.Scope.Name, check.Title, check.ID, string(result)),
 		}
 
 		var index int
@@ -76,7 +60,7 @@ func (m *mapper) Map(report *v1alpha1.ClusterRbacAssessmentReport, polr *v1alpha
 			Severity:   shared.MapServerity(check.Severity),
 			Category:   check.Category,
 			Timestamp:  *report.CreationTimestamp.ProtoTime(),
-			Source:     trivySource,
+			Source:     TrivySource,
 		})
 	}
 
@@ -103,16 +87,16 @@ func CreateObjectReference(report *v1alpha1.ClusterRbacAssessmentReport) *corev1
 		}
 	}
 	return &corev1.ObjectReference{
-		Kind: report.Labels[kindLabel],
-		Name: report.Annotations[nameAnnotation],
+		Kind: report.Labels[KindLabel],
+		Name: report.Annotations[NameAnnotation],
 	}
 }
 
 func (m *mapper) CreatePolicyReport(report *v1alpha1.ClusterRbacAssessmentReport) *v1alpha2.ClusterPolicyReport {
 	return &v1alpha2.ClusterPolicyReport{
 		ObjectMeta: v1.ObjectMeta{
-			Name:            GeneratePolicyReportName(report),
-			Labels:          m.CreateLabels(report.Labels, reportLabels),
+			Name:            GenerateReportName(report),
+			Labels:          m.CreateLabels(report.Labels, ReportLabels),
 			OwnerReferences: report.OwnerReferences,
 		},
 		Summary: CreateSummary(report),
@@ -134,11 +118,11 @@ func CreateSummary(report *v1alpha1.ClusterRbacAssessmentReport) v1alpha2.Policy
 	return summary
 }
 
-func GeneratePolicyReportName(report *v1alpha1.ClusterRbacAssessmentReport) string {
-	return fmt.Sprintf("%s-%s", reportPrefix, report.Name)
+func GenerateReportName(report *v1alpha1.ClusterRbacAssessmentReport) string {
+	return fmt.Sprintf("%s-%s", ReportPrefix, report.Name)
 }
 
-func generateID(uid, name, policy, rule, result string) string {
+func GenerateID(uid, name, policy, rule, result string) string {
 	id := fmt.Sprintf("%s_%s_%s_%s_%s", uid, name, policy, rule, result)
 
 	h := sha1.New()
