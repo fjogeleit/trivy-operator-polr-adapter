@@ -2,7 +2,7 @@ server:
   port: {{ .Values.port.number }}
 
 openReports:
-  enabled: {{ .Values.openreports.enabled }}
+  enabled: {{ or .Values.openreports.enabled .Values.openreports.install }}
 
 vulnerabilityReports:
   enabled: {{ .Values.adapters.vulnerabilityReports.enabled }}
