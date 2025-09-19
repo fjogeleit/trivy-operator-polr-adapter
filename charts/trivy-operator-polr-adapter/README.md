@@ -12,7 +12,7 @@ Helm Chart to install the trivy-operator PolicyReport adapter
 | image.registry | string | `"ghcr.io"` |  |
 | image.repository | string | `"fjogeleit/trivy-operator-polr-adapter"` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
-| image.tag | string | `"0.10.1"` |  |
+| image.tag | string | `nil` |  |
 | imagePullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
 | fullnameOverride | string | `""` |  |
