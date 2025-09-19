@@ -35,6 +35,7 @@ import (
 	vulnror "github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/vulnr/openreports"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
+	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/server"
 )
 
@@ -80,7 +81,15 @@ func (r *Resolver) CRDsClient() (dynamic.ResourceInterface, error) {
 }
 
 func (r *Resolver) Server(client dynamic.ResourceInterface) *server.Server {
-	return server.New(client, r.config.Server.Port)
+	return server.New(client, r.CRDValidator(), r.config.Server.Port)
+}
+
+func (r *Resolver) CRDValidator() crd.Validator {
+	if r.config.OpenReport.Enabled {
+		return crd.EnsureOpenReportAvailable
+	}
+
+	return crd.EnsurePolicyReportAvailable
 }
 
 func (r *Resolver) polrAPI() *v1alpha2.Wgpolicyk8sV1alpha2Client {

@@ -13,7 +13,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/config"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
 )
 
 func newRunCMD() *cobra.Command {
@@ -52,7 +51,7 @@ func newRunCMD() *cobra.Command {
 			}()
 
 			for {
-				err := crd.EnsurePolicyReportAvailable(cmd.Context(), crdsClient)
+				err := resolver.CRDValidator()(cmd.Context(), crdsClient)
 				if err == nil {
 					break
 				}
