@@ -6,7 +6,7 @@ toolchain go1.24.4
 
 require (
 	github.com/openreports/reports-api v0.2.1
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
 	golang.org/x/net v0.47.0
 	k8s.io/api v0.34.1
