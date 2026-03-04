@@ -34,7 +34,7 @@ type mapper struct {
 }
 
 func (m *mapper) Map(report *v1alpha1.ClusterVulnerabilityReport, polr *v1alpha2.ClusterPolicyReport) (*v1alpha2.ClusterPolicyReport, bool) {
-	if len(report.Report.Vulnerabilities) == 0 {
+	if len(report.Report.Vulnerabilities) == 0 && polr == nil {
 		return nil, false
 	}
 

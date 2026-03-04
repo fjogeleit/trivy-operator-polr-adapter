@@ -31,6 +31,8 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Clus
 		polr, updated := p.mapper.Map(report, polr)
 		if polr == nil {
 			return nil
+		} else if len(polr.Results) == 0 {
+			err = p.DeleteReport(ctx, report)
 		} else if updated {
 			_, err = p.k8sClient.ClusterReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {

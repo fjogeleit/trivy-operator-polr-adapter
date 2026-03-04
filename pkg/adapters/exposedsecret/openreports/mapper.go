@@ -16,7 +16,7 @@ type mapper struct {
 }
 
 func (m *mapper) Map(report *v1alpha1.ExposedSecretReport, polr *orv1alpha1.Report) (*orv1alpha1.Report, bool) {
-	if len(report.Report.Secrets) == 0 {
+	if len(report.Report.Secrets) == 0 && polr == nil {
 		return nil, false
 	}
 

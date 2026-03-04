@@ -18,6 +18,10 @@ type mapper struct {
 }
 
 func (m *mapper) Map(report *v1alpha1.ClusterInfraAssessmentReport, polr *orv1alpha1.ClusterReport) (*orv1alpha1.ClusterReport, bool) {
+	if len(report.Report.Checks) == 0 && polr == nil {
+		return nil, false
+	}
+
 	var updated bool
 
 	if polr == nil {

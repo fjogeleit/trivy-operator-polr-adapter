@@ -31,6 +31,8 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 		polr, updated := p.mapper.Map(report, polr)
 		if polr == nil {
 			return nil
+		} else if len(polr.Results) == 0 {
+			err = p.DeleteReport(ctx, report)
 		} else if updated {
 			_, err = p.k8sClient.ClusterReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {
@@ -38,7 +40,7 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to create ClusterReport %s: %s", report.Name, err)
+			return fmt.Errorf("failed to create ClusterReport %s: %w", report.Name, err)
 		}
 
 		return nil

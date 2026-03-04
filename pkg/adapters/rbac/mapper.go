@@ -17,7 +17,8 @@ type mapper struct {
 }
 
 func (m *mapper) Map(report *v1alpha1.RbacAssessmentReport, polr *v1alpha2.PolicyReport) (*v1alpha2.PolicyReport, bool) {
-	if len(report.Report.Checks) == 0 {
+	// only skip creation of new empty reports
+	if len(report.Report.Checks) == 0 && polr == nil {
 		return nil, false
 	}
 
