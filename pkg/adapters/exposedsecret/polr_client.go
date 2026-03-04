@@ -35,6 +35,8 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Expo
 		polr, updated := p.mapper.Map(report, polr)
 		if polr == nil {
 			return nil
+		} else if len(polr.Results) == 0 {
+			err = p.DeleteReport(ctx, report)
 		} else if updated {
 			_, err = p.k8sClient.PolicyReports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
 		} else {

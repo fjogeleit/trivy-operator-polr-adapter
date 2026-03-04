@@ -31,6 +31,8 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Vuln
 		polr, updated := p.mapper.Map(report, polr)
 		if polr == nil {
 			return nil
+		} else if len(polr.Results) == 0 {
+			err = p.DeleteReport(ctx, report)
 		} else if updated {
 			_, err = p.k8sClient.Reports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
 		} else {
@@ -38,7 +40,7 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Vuln
 		}
 
 		if err != nil {
-			return fmt.Errorf("failed to create PolicyReport in namespace %s: %s", report.Namespace, err)
+			return fmt.Errorf("failed to create PolicyReport in namespace %s: %w", report.Namespace, err)
 		}
 
 		return nil
