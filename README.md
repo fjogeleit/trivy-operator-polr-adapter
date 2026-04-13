@@ -33,6 +33,7 @@ Local usage with ConfigAuditReport and VulnerabilityReports mapping enabled.
 |---------------------------|----------------------------------------|-----------------------------------------------------------------------|--------------------|
 | --kubeconfig              |                                        | Path to the used kubeconfig, mainly for local development             |                    |
 | --use-open-reports        |`openreports.enabled`                   | Use the OpenReports API as report format instead of the PolicyReport API   |     `false`   |
+| --use-watch-list          |`useWatchList.      `                   | Uses the WatchListClient feature, enabled by default   |     `true`   |
 | --enable-vulnerability    |`adapters.vulnerabilityReports.enabled` | Enables the transformation of VulnerabilityReports into PolicyReports | `true`             |
 | --enable-cluster-vulnerability    |`adapters.clusterVulnerabilityReports.enabled` | Enables the transformation of ClusterVulnerabilityReports into ClusterPolicyReports | `false`             |
 | --enable-config-audit     |`adapters.configAuditReports.enabled`   | Enables the transformation of ConfigAuditReports into PolicyReports   | `true`             |

@@ -6,3 +6,4 @@ coverage.out
 heap*
 .vscode
 .tools
+.claude
