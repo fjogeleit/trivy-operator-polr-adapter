@@ -2,6 +2,7 @@ package config
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	orv1alpha1 "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
@@ -10,6 +11,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	metricserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -36,7 +38,6 @@ import (
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/client/clientset/versioned/typed/policyreport/v1alpha2"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/crd"
-	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/server"
 )
 
 // Resolver manages dependencies
@@ -78,10 +79,6 @@ func (r *Resolver) CRDsClient() (dynamic.ResourceInterface, error) {
 	r.crdClient = crd
 
 	return crd, nil
-}
-
-func (r *Resolver) Server(client dynamic.ResourceInterface) *server.Server {
-	return server.New(client, r.CRDValidator(), r.config.Server.Port)
 }
 
 func (r *Resolver) CRDValidator() crd.Validator {
@@ -134,8 +131,17 @@ func (r *Resolver) Manager() (manager.Manager, error) {
 		Metrics: metricserver.Options{
 			BindAddress: "0",
 		},
+		HealthProbeBindAddress: fmt.Sprintf(":%d", r.config.Server.Port),
+		ReadinessEndpointName:  "/ready",
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
+		return nil, err
+	}
+	if err := mgr.AddReadyzCheck("ready", healthz.Ping); err != nil {
 		return nil, err
 	}
 

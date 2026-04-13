@@ -10,6 +10,8 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+useWatchList: true
+
 crds:
   install: false
 

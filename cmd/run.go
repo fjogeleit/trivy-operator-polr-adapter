@@ -1,12 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/spf13/cobra"
+	clientfeatures "k8s.io/client-go/features"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2/textlogger"
@@ -25,6 +29,12 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
+			if setter, ok := clientfeatures.FeatureGates().(interface {
+				Set(clientfeatures.Feature, bool) error
+			}); ok {
+				_ = setter.Set(clientfeatures.WatchListClient, c.UseWatchList)
+			}
+
 			var k8sConfig *rest.Config
 			if c.Kubeconfig != "" {
 				k8sConfig, err = clientcmd.BuildConfigFromFlags("", c.Kubeconfig)
@@ -32,7 +42,7 @@ func newRunCMD() *cobra.Command {
 				k8sConfig, err = rest.InClusterConfig()
 			}
 
-			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(5))))
+			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(2))))
 
 			resolver := config.NewResolver(c, k8sConfig)
 
@@ -40,15 +50,6 @@ func newRunCMD() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			srv := resolver.Server(crdsClient)
-
-			go func() {
-				fmt.Printf("[INFO] start server on port %d\n", c.Server.Port)
-				if err := srv.Start(); err != nil {
-					fmt.Println("[ERROR] failed to start server")
-				}
-			}()
 
 			for {
 				err := resolver.CRDValidator()(cmd.Context(), crdsClient)
@@ -192,7 +193,10 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
-			return mgr.Start(cmd.Context())
+			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+			defer cancel()
+
+			return mgr.Start(ctx)
 		},
 	}
 
@@ -211,6 +215,7 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().Bool("enable-cluster-infra-assessment", false, "Enable the transformation of ClusterInfraAssessmentReports into ClusterPolicyReports")
 	cmd.PersistentFlags().Bool("enable-cluster-vulnerability", false, "Enable the transformation of ClusterVulnerabilityReports into ClusterPolicyReports")
 	cmd.PersistentFlags().Bool("use-open-reports", false, "Use OpenReports API as report format")
+	cmd.PersistentFlags().Bool("use-watch-list", true, "Use WatchList client feature")
 
 	flag.Parse()
 

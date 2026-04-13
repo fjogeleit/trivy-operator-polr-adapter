@@ -20,6 +20,7 @@ type OpenReports struct {
 // Config of the Tracee Adapter
 type Config struct {
 	Kubeconfig                    string       `mapstructure:"kubeconfig"`
+	UseWatchList                  bool         `mapstructure:"useWatchList"`
 	Server                        Server       `mapstructure:"server"`
 	OpenReport                    OpenReports  `mapstructure:"openReports"`
 	VulnerabilityReports          ReportConfig `mapstructure:"vulnerabilityReports"`

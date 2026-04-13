@@ -2,7 +2,7 @@
 
 Helm Chart to install the trivy-operator PolicyReport adapter
 
-![Version: 0.11.2](https://img.shields.io/badge/Version-0.11.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.2](https://img.shields.io/badge/AppVersion-0.11.2-informational?style=flat-square)
+![Version: 0.11.3](https://img.shields.io/badge/Version-0.11.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 0.11.3](https://img.shields.io/badge/AppVersion-0.11.3-informational?style=flat-square)
 
 ## Values
 
@@ -16,6 +16,7 @@ Helm Chart to install the trivy-operator PolicyReport adapter
 | imagePullSecrets | list | `[]` |  |
 | nameOverride | string | `""` |  |
 | fullnameOverride | string | `""` |  |
+| useWatchList | bool | `true` |  |
 | crds.install | bool | `false` |  |
 | openreports.enabled | bool | `false` |  |
 | openreports.install | bool | `false` |  |

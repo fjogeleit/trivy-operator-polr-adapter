@@ -61,6 +61,9 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("use-open-reports"); flag != nil {
 		v.BindPFlag("openReports.enabled", flag)
 	}
+	if flag := cmd.Flags().Lookup("use-watch-list"); flag != nil {
+		v.BindPFlag("useWatchList", flag)
+	}
 	if flag := cmd.Flags().Lookup("port"); flag != nil {
 		v.BindPFlag("server.port", flag)
 	}

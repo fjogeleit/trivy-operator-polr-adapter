@@ -4,6 +4,8 @@ server:
 openReports:
   enabled: {{ or .Values.openreports.enabled .Values.openreports.install }}
 
+useWatchList: {{ .Values.useWatchList }}
+
 vulnerabilityReports:
   enabled: {{ .Values.adapters.vulnerabilityReports.enabled }}
   timeout: {{ .Values.adapters.vulnerabilityReports.timeout }}
