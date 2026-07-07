@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -32,6 +31,7 @@ func newRunCMD() *cobra.Command {
 			if setter, ok := clientfeatures.FeatureGates().(interface {
 				Set(clientfeatures.Feature, bool) error
 			}); ok {
+				log.Printf("[INFO] WatchList client feature: %v\n", c.UseWatchList)
 				_ = setter.Set(clientfeatures.WatchListClient, c.UseWatchList)
 			}
 
@@ -62,7 +62,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ConfigAuditReports.Enabled {
-				fmt.Println("[INFO] ConfigAuditReports enabled")
+				log.Println("[INFO] ConfigAuditReports enabled")
 				auditrClient, err := resolver.ConfigAuditReportClient()
 				if err != nil {
 					return err
@@ -75,7 +75,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.VulnerabilityReports.Enabled {
-				fmt.Println("[INFO] VulnerabilityReports enabled")
+				log.Println("[INFO] VulnerabilityReports enabled")
 				vulnrClient, err := resolver.VulnerabilityReportClient()
 				if err != nil {
 					return err
@@ -88,7 +88,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ClusterVulnerabilityReports.Enabled {
-				fmt.Println("[INFO] ClusterVulnerabilityReports enabled")
+				log.Println("[INFO] ClusterVulnerabilityReports enabled")
 				clustervulnrClient, err := resolver.ClusterVulnerabilityReportClient()
 				if err != nil {
 					return err
@@ -101,7 +101,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ComplianceReports.Enabled {
-				fmt.Println("[INFO] ComplianceReports enabled")
+				log.Println("[INFO] ComplianceReports enabled")
 				complianceClient, err := resolver.ComplianceReportClient()
 				if err != nil {
 					return err
@@ -114,7 +114,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.RbacAssessmentReports.Enabled {
-				fmt.Println("[INFO] RbacAssessmentReports enabled")
+				log.Println("[INFO] RbacAssessmentReports enabled")
 				rbacClient, err := resolver.RbacAssessmentReportClient()
 				if err != nil {
 					return err
@@ -137,7 +137,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ExposedSecretReports.Enabled {
-				fmt.Println("[INFO] ExposedSecretReports enabled")
+				log.Println("[INFO] ExposedSecretReports enabled")
 				secretClient, err := resolver.ExposedSecretReportClient()
 				if err != nil {
 					return err
@@ -150,7 +150,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.CISKubeBenchReports.Enabled {
-				fmt.Println("[INFO] CISKubeBenchReports enabled")
+				log.Println("[INFO] CISKubeBenchReports enabled")
 				kubeBenchClient, err := resolver.CISKubeBenchReportClient()
 				if err != nil {
 					return err
@@ -163,7 +163,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.InfraAssessmentReports.Enabled {
-				fmt.Println("[INFO] InfraAssessmentReportClient enabled")
+				log.Println("[INFO] InfraAssessmentReportClient enabled")
 				infraClient, err := resolver.InfraAssessmentReportClient()
 				if err != nil {
 					return err
@@ -176,7 +176,7 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ClusterInfraAssessmentReports.Enabled {
-				fmt.Println("[INFO] ClusterInfraAssessmentReportClient enabled")
+				log.Println("[INFO] ClusterInfraAssessmentReportClient enabled")
 				clusterInfraClient, err := resolver.ClusterInfraAssessmentReportClient()
 				if err != nil {
 					return err
