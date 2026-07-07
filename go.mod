@@ -1,6 +1,6 @@
 module github.com/fjogeleit/trivy-operator-polr-adapter
 
-go 1.26.0
+go 1.26.4
 
 require (
 	github.com/openreports/reports-api v0.2.1
