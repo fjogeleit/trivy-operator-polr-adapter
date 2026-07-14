@@ -1,10 +1,10 @@
 package openreports
 
 import (
+	"context"
 	"fmt"
 
 	or "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
-	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -56,6 +56,10 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Config
 
 		return nil
 	})
+}
+
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "ConfigAuditReport")
 }
 
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) auditr.ReportClient {

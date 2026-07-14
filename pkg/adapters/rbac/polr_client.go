@@ -16,6 +16,7 @@ import (
 type ReportClient interface {
 	GenerateReport(ctx context.Context, report *v1alpha1.RbacAssessmentReport) error
 	DeleteReport(ctx context.Context, report *v1alpha1.RbacAssessmentReport) error
+	Cleanup(ctx context.Context) error
 }
 
 type reportClient struct {
@@ -60,6 +61,10 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.RbacAs
 
 		return nil
 	})
+}
+
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.WGPolrCleanup(ctx, p.k8sClient, "RbacAssessmentReport")
 }
 
 func NewReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) ReportClient {

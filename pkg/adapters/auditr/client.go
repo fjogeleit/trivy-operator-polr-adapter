@@ -44,6 +44,10 @@ func (e *Client) StartWatching() error {
 	}))
 }
 
+func (e *Client) Cleanup(ctx context.Context) error {
+	return e.client.Cleanup(ctx)
+}
+
 func NewClient(mgr manager.Manager, controller controller.Controller, orClient ReportClient) *Client {
 	return &Client{
 		manager:    mgr,

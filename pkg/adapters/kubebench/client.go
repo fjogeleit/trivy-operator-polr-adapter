@@ -45,6 +45,10 @@ func (e *Client) StartWatching(ctx context.Context) error {
 	}))
 }
 
+func (e *Client) Cleanup(ctx context.Context) error {
+	return e.polrClient.Cleanup(ctx)
+}
+
 func NewClient(mgr manager.Manager, client controller.Controller, polrClient v1alpha2.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *Client {
 	return &Client{
 		manager:    mgr,

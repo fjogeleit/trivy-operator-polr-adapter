@@ -30,7 +30,9 @@ func loadConfig(cmd *cobra.Command) (*config.Config, error) {
 	if flag := cmd.Flags().Lookup("kubeconfig"); flag != nil {
 		v.BindPFlag("kubeconfig", flag)
 	}
-
+	if flag := cmd.Flags().Lookup("verbosity"); flag != nil {
+		v.BindPFlag("logger.verbosity", flag)
+	}
 	if flag := cmd.Flags().Lookup("enable-vulnerability"); flag != nil {
 		v.BindPFlag("vulnerabilityReports.enabled", flag)
 	}

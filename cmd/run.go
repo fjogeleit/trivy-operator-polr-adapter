@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"time"
@@ -28,10 +27,12 @@ func newRunCMD() *cobra.Command {
 				return err
 			}
 
+			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(c.Logger.Verbosity))))
+
 			if setter, ok := clientfeatures.FeatureGates().(interface {
 				Set(clientfeatures.Feature, bool) error
 			}); ok {
-				log.Printf("[INFO] WatchList client feature: %v\n", c.UseWatchList)
+				ctrl.Log.V(4).Info("WatchList client feature", "enabled", c.UseWatchList)
 				_ = setter.Set(clientfeatures.WatchListClient, c.UseWatchList)
 			}
 
@@ -41,8 +42,6 @@ func newRunCMD() *cobra.Command {
 			} else {
 				k8sConfig, err = rest.InClusterConfig()
 			}
-
-			ctrl.SetLogger(textlogger.NewLogger(textlogger.NewConfig(textlogger.Verbosity(2))))
 
 			resolver := config.NewResolver(c, k8sConfig)
 
@@ -57,17 +56,23 @@ func newRunCMD() *cobra.Command {
 					break
 				}
 
-				log.Printf("[ERROR] %s\n", err)
+				ctrl.Log.Error(err, "CRD validation failed, retrying in 1 minute")
 				time.Sleep(time.Minute)
 			}
 
+			logger := ctrl.Log.V(2)
+
 			if c.ConfigAuditReports.Enabled {
-				log.Println("[INFO] ConfigAuditReports enabled")
+				logger.Info("ConfigAuditReports enabled")
 				auditrClient, err := resolver.ConfigAuditReportClient()
 				if err != nil {
 					return err
 				}
 
+				err = auditrClient.Cleanup(cmd.Context())
+				if err != nil {
+					return err
+				}
 				err = auditrClient.StartWatching()
 				if err != nil {
 					return err
@@ -75,8 +80,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.VulnerabilityReports.Enabled {
-				log.Println("[INFO] VulnerabilityReports enabled")
+				logger.Info("VulnerabilityReports enabled")
 				vulnrClient, err := resolver.VulnerabilityReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = vulnrClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -88,8 +98,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ClusterVulnerabilityReports.Enabled {
-				log.Println("[INFO] ClusterVulnerabilityReports enabled")
+				logger.Info("ClusterVulnerabilityReports enabled")
 				clustervulnrClient, err := resolver.ClusterVulnerabilityReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = clustervulnrClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -101,8 +116,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ComplianceReports.Enabled {
-				log.Println("[INFO] ComplianceReports enabled")
+				logger.Info("ComplianceReports enabled")
 				complianceClient, err := resolver.ComplianceReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = complianceClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -114,8 +134,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.RbacAssessmentReports.Enabled {
-				log.Println("[INFO] RbacAssessmentReports enabled")
+				logger.Info("RbacAssessmentReports enabled")
 				rbacClient, err := resolver.RbacAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = rbacClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -130,6 +155,11 @@ func newRunCMD() *cobra.Command {
 					return err
 				}
 
+				err = clusterrbacClient.Cleanup(cmd.Context())
+				if err != nil {
+					return err
+				}
+
 				err = clusterrbacClient.StartWatching(cmd.Context())
 				if err != nil {
 					return err
@@ -137,8 +167,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ExposedSecretReports.Enabled {
-				log.Println("[INFO] ExposedSecretReports enabled")
+				logger.Info("ExposedSecretReports enabled")
 				secretClient, err := resolver.ExposedSecretReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = secretClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -150,8 +185,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.CISKubeBenchReports.Enabled {
-				log.Println("[INFO] CISKubeBenchReports enabled")
+				logger.Info("CISKubeBenchReports enabled")
 				kubeBenchClient, err := resolver.CISKubeBenchReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = kubeBenchClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -163,8 +203,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.InfraAssessmentReports.Enabled {
-				log.Println("[INFO] InfraAssessmentReportClient enabled")
+				logger.Info("InfraAssessmentReports enabled")
 				infraClient, err := resolver.InfraAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = infraClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -176,8 +221,13 @@ func newRunCMD() *cobra.Command {
 			}
 
 			if c.ClusterInfraAssessmentReports.Enabled {
-				log.Println("[INFO] ClusterInfraAssessmentReportClient enabled")
+				logger.Info("ClusterInfraAssessmentReports enabled")
 				clusterInfraClient, err := resolver.ClusterInfraAssessmentReportClient()
+				if err != nil {
+					return err
+				}
+
+				err = clusterInfraClient.Cleanup(cmd.Context())
 				if err != nil {
 					return err
 				}
@@ -204,6 +254,7 @@ func newRunCMD() *cobra.Command {
 	cmd.PersistentFlags().StringP("kubeconfig", "k", "", "absolute path to the kubeconfig file")
 	cmd.PersistentFlags().IntP("port", "p", 8080, "Port of the Server")
 	cmd.PersistentFlags().StringP("config", "c", "", "target configuration file")
+	cmd.PersistentFlags().IntP("verbosity", "v", 2, "Verbosity level of the logger")
 
 	cmd.PersistentFlags().Bool("enable-vulnerability", false, "Enable the transformation of VulnerabilityReports into PolicyReports")
 	cmd.PersistentFlags().Bool("enable-config-audit", false, "Enable the transformation of ConfigAuditReports into PolicyReports")

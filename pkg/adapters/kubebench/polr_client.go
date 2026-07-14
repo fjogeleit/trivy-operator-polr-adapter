@@ -55,6 +55,10 @@ func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.
 	})
 }
 
+func (p *PolicyReportClient) Cleanup(ctx context.Context) error {
+	return shared.WGPolrCleanup(ctx, p.k8sClient, "CISKubeBenchReport")
+}
+
 func NewPolicyReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) *PolicyReportClient {
 	return &PolicyReportClient{
 		k8sClient: client,

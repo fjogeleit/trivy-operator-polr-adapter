@@ -58,6 +58,10 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.InfraA
 	})
 }
 
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "InfraAssessmentReport")
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) infra.ReportClient {
 	return &reportClient{
 		k8sClient: client,

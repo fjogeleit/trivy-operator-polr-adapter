@@ -58,6 +58,19 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Cluste
 	})
 }
 
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		err := p.k8sClient.ClusterReports().DeleteCollection(ctx, v1.DeleteOptions{}, v1.ListOptions{
+			LabelSelector: "trivy-operator.source=ClusterInfraAssessmentReport",
+		})
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) clusterinfra.ReportClient {
 	return &reportClient{
 		k8sClient: client,

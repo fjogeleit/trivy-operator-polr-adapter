@@ -58,6 +58,10 @@ func (p *PolicyReportClient) DeleteReport(ctx context.Context, report *v1alpha1.
 	})
 }
 
+func (p *PolicyReportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "ClusterRbacAssessmentReport")
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) *PolicyReportClient {
 	return &PolicyReportClient{
 		k8sClient: client,

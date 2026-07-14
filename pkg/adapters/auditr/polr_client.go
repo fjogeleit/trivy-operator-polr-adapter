@@ -1,9 +1,9 @@
 package auditr
 
 import (
+	"context"
 	"fmt"
 
-	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -16,6 +16,7 @@ import (
 type ReportClient interface {
 	GenerateReport(ctx context.Context, report *v1alpha1.ConfigAuditReport) error
 	DeleteReport(ctx context.Context, report *v1alpha1.ConfigAuditReport) error
+	Cleanup(ctx context.Context) error
 }
 
 type reportClient struct {
@@ -60,6 +61,10 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Config
 
 		return nil
 	})
+}
+
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.WGPolrCleanup(ctx, p.k8sClient, "ConfigAuditReport")
 }
 
 func NewReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []string) ReportClient {

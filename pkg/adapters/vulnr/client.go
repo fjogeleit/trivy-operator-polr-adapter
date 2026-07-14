@@ -17,6 +17,7 @@ import (
 
 type Client interface {
 	StartWatching(ctx context.Context) error
+	Cleanup(ctx context.Context) error
 }
 
 type client struct {
@@ -46,6 +47,10 @@ func (e *client) StartWatching(ctx context.Context) error {
 			}
 		},
 	}))
+}
+
+func (e *client) Cleanup(ctx context.Context) error {
+	return e.polrClient.Cleanup(ctx)
 }
 
 func NewClient(mgr manager.Manager, controller controller.Controller, orClient ReportClient) Client {

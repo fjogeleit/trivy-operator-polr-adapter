@@ -58,6 +58,10 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Expose
 	})
 }
 
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "ExposedSecretReport")
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) *reportClient {
 	return &reportClient{
 		k8sClient: client,
