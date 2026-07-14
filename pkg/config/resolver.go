@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/go-logr/logr"
 	orv1alpha1 "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -58,6 +59,7 @@ type Resolver struct {
 	clusterInfraClient *clusterinfra.Client
 	kubeBenchClient    *kubebench.Client
 	mgr                manager.Manager
+	logger             logr.Logger
 }
 
 func (r *Resolver) CRDsClient() (dynamic.ResourceInterface, error) {

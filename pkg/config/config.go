@@ -17,10 +17,16 @@ type OpenReports struct {
 	Enabled bool `mapstructure:"enabled"`
 }
 
+// Logger configuration
+type Logger struct {
+	Verbosity int `mapstructure:"verbosity"`
+}
+
 // Config of the Tracee Adapter
 type Config struct {
 	Kubeconfig                    string       `mapstructure:"kubeconfig"`
 	UseWatchList                  bool         `mapstructure:"useWatchList"`
+	Logger                        Logger       `mapstructure:"logger"`
 	Server                        Server       `mapstructure:"server"`
 	OpenReport                    OpenReports  `mapstructure:"openReports"`
 	VulnerabilityReports          ReportConfig `mapstructure:"vulnerabilityReports"`

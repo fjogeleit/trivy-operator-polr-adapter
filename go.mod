@@ -3,6 +3,7 @@ module github.com/fjogeleit/trivy-operator-polr-adapter
 go 1.26.4
 
 require (
+	github.com/go-logr/logr v1.4.3
 	github.com/openreports/reports-api v0.2.1
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/viper v1.21.0
@@ -23,7 +24,6 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.11 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.2 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-openapi/jsonpointer v0.24.0 // indirect
 	github.com/go-openapi/jsonreference v0.21.6 // indirect
 	github.com/go-openapi/swag v0.27.0 // indirect

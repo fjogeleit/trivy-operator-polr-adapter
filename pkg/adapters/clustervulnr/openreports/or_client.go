@@ -1,13 +1,15 @@
 package openreports
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	or "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
-	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/clustervulnr"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
@@ -17,6 +19,7 @@ import (
 type reportClient struct {
 	k8sClient or.OpenreportsV1alpha1Interface
 	mapper    *mapper
+	logger    logr.Logger
 }
 
 func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterVulnerabilityReport) error {
@@ -32,10 +35,13 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Clus
 		if polr == nil {
 			return nil
 		} else if len(polr.Results) == 0 {
+			p.logger.Info("No results, deleting ClusterReport", "report", report.Name)
 			err = p.DeleteReport(ctx, report)
 		} else if updated {
+			p.logger.Info("Updating ClusterReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {
+			p.logger.Info("Creating ClusterReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterReports().Create(ctx, polr, v1.CreateOptions{})
 		}
 
@@ -58,11 +64,16 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Cluste
 	})
 }
 
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "ClusterVulnerabilityReport")
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) clustervulnr.ReportClient {
 	return &reportClient{
 		k8sClient: client,
 		mapper: &mapper{
 			LabelMapper: shared.NewLabelMapper(applyLabels),
 		},
+		logger:    ctrl.Log.WithName("ClusterVulnerabilityReportOpenReportsClient").V(4),
 	}
 }

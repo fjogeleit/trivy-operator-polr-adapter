@@ -1,13 +1,15 @@
 package openreports
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/go-logr/logr"
 	or "github.com/openreports/reports-api/pkg/client/clientset/versioned/typed/openreports.io/v1alpha1"
-	"golang.org/x/net/context"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/exposedsecret"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
@@ -17,6 +19,7 @@ import (
 type reportClient struct {
 	k8sClient or.OpenreportsV1alpha1Interface
 	mapper    *mapper
+	logger    logr.Logger
 }
 
 func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.ExposedSecretReport) error {
@@ -32,10 +35,13 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Expo
 		if polr == nil {
 			return nil
 		} else if len(polr.Results) == 0 {
+			p.logger.Info("No results, deleting Report", "report", report.Name, "namespace", report.Namespace)
 			err = p.DeleteReport(ctx, report)
 		} else if updated {
+			p.logger.Info("Updating Report", "report", report.Name, "namespace", report.Namespace)
 			_, err = p.k8sClient.Reports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
 		} else {
+			p.logger.Info("Creating Report", "report", report.Name, "namespace", report.Namespace)
 			_, err = p.k8sClient.Reports(report.Namespace).Create(ctx, polr, v1.CreateOptions{})
 		}
 
@@ -58,9 +64,14 @@ func (p *reportClient) DeleteReport(ctx context.Context, report *v1alpha1.Expose
 	})
 }
 
+func (p *reportClient) Cleanup(ctx context.Context) error {
+	return shared.OpenReportCleanup(ctx, p.k8sClient, "ExposedSecretReport")
+}
+
 func NewReportClient(client or.OpenreportsV1alpha1Interface, applyLabels []string) *reportClient {
 	return &reportClient{
 		k8sClient: client,
 		mapper:    &mapper{shared.NewLabelMapper(applyLabels)},
+		logger:    ctrl.Log.WithName("ExposedSecretReportOpenReportsClient").V(4),
 	}
 }
