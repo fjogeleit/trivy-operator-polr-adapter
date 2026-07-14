@@ -1,12 +1,14 @@
 package clusterinfra
 
 import (
+	"context"
 	"fmt"
 
-	"golang.org/x/net/context"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
@@ -22,6 +24,7 @@ type ReportClient interface {
 type reportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
 	mapper    *mapper
+	logger    logr.Logger
 }
 
 func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.ClusterInfraAssessmentReport) error {
@@ -37,10 +40,13 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Clus
 		if polr == nil {
 			return nil
 		} else if len(polr.Results) == 0 {
+			p.logger.Info("No results, deleting ClusterPolicyReport", "report", report.Name)
 			err = p.DeleteReport(ctx, report)
 		} else if updated {
+			p.logger.Info("Updating ClusterPolicyReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterPolicyReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {
+			p.logger.Info("Creating ClusterPolicyReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterPolicyReports().Create(ctx, polr, v1.CreateOptions{})
 		}
 
@@ -71,5 +77,6 @@ func NewReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []strin
 	return &reportClient{
 		k8sClient: client,
 		mapper:    &mapper{shared.NewLabelMapper(applyLabels)},
+		logger:    ctrl.Log.WithName("ClusterInfraAssessmentReportClient").V(4),
 	}
 }

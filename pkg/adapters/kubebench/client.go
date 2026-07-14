@@ -2,12 +2,12 @@ package kubebench
 
 import (
 	"context"
-	"log"
 
 	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -27,19 +27,19 @@ func (e *Client) StartWatching(ctx context.Context) error {
 		CreateFunc: func(ctx context.Context, event event.TypedCreateEvent[*v1alpha1.CISKubeBenchReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 			err := e.polrClient.GenerateReport(ctx, event.Object)
 			if err != nil {
-				log.Printf("[ERROR] CISKubeBenchReport: Failed to process report %s; %s", event.Object.Name, err)
+				ctrl.Log.Error(err, "CISKubeBenchReport: failed to process report", "report", event.Object.Name)
 			}
 		},
 		UpdateFunc: func(ctx context.Context, event event.TypedUpdateEvent[*v1alpha1.CISKubeBenchReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 			err := e.polrClient.GenerateReport(ctx, event.ObjectNew)
 			if err != nil {
-				log.Printf("[ERROR] CISKubeBenchReport: Failed to process report %s; %s", event.ObjectNew.Name, err)
+				ctrl.Log.Error(err, "CISKubeBenchReport: failed to process report", "report", event.ObjectNew.Name)
 			}
 		},
 		DeleteFunc: func(ctx context.Context, event event.TypedDeleteEvent[*v1alpha1.CISKubeBenchReport], _ workqueue.TypedRateLimitingInterface[reconcile.Request]) {
 			err := e.polrClient.DeleteReport(ctx, event.Object)
 			if err != nil {
-				log.Printf("[ERROR] CISKubeBenchReport: Failed to delete report %s; %s", event.Object.Name, err)
+				ctrl.Log.Error(err, "CISKubeBenchReport: failed to delete report", "report", event.Object.Name)
 			}
 		},
 	}))

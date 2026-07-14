@@ -1,12 +1,14 @@
 package kubebench
 
 import (
+	"context"
 	"fmt"
 
-	"golang.org/x/net/context"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
@@ -16,6 +18,7 @@ import (
 type PolicyReportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
 	mapper    *mapper
+	logger    logr.Logger
 }
 
 func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha1.CISKubeBenchReport) error {
@@ -31,8 +34,10 @@ func (p *PolicyReportClient) GenerateReport(ctx context.Context, report *v1alpha
 		if polr == nil {
 			return nil
 		} else if updated {
+			p.logger.Info("Updating ClusterPolicyReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterPolicyReports().Update(ctx, polr, v1.UpdateOptions{})
 		} else {
+			p.logger.Info("Creating ClusterPolicyReport", "report", report.Name)
 			_, err = p.k8sClient.ClusterPolicyReports().Create(ctx, polr, v1.CreateOptions{})
 		}
 
@@ -63,5 +68,6 @@ func NewPolicyReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels [
 	return &PolicyReportClient{
 		k8sClient: client,
 		mapper:    &mapper{shared.NewLabelMapper(applyLabels)},
+		logger:    ctrl.Log.WithName("CISKubeBenchReportClient").V(4),
 	}
 }

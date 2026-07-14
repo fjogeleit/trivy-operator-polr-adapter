@@ -1,12 +1,14 @@
 package rbac
 
 import (
+	"context"
 	"fmt"
 
-	"golang.org/x/net/context"
+	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
+	ctrl "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/adapters/shared"
 	"github.com/fjogeleit/trivy-operator-polr-adapter/pkg/apis/aquasecurity/v1alpha1"
@@ -22,6 +24,7 @@ type ReportClient interface {
 type reportClient struct {
 	k8sClient pr.Wgpolicyk8sV1alpha2Interface
 	mapper    *mapper
+	logger    logr.Logger
 }
 
 func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.RbacAssessmentReport) error {
@@ -37,10 +40,13 @@ func (p *reportClient) GenerateReport(ctx context.Context, report *v1alpha1.Rbac
 		if polr == nil {
 			return nil
 		} else if len(polr.Results) == 0 {
+			p.logger.Info("No results, deleting PolicyReport", "report", report.Name, "namespace", report.Namespace)
 			err = p.DeleteReport(ctx, report)
 		} else if updated {
+			p.logger.Info("Updating PolicyReport", "report", report.Name, "namespace", report.Namespace)
 			_, err = p.k8sClient.PolicyReports(report.Namespace).Update(ctx, polr, v1.UpdateOptions{})
 		} else {
+			p.logger.Info("Creating PolicyReport", "report", report.Name, "namespace", report.Namespace)
 			_, err = p.k8sClient.PolicyReports(report.Namespace).Create(ctx, polr, v1.CreateOptions{})
 		}
 
@@ -73,5 +79,6 @@ func NewReportClient(client pr.Wgpolicyk8sV1alpha2Interface, applyLabels []strin
 		mapper: &mapper{
 			shared.NewLabelMapper(applyLabels),
 		},
+		logger: ctrl.Log.WithName("RbacAssessmentReportClient").V(4),
 	}
 }
